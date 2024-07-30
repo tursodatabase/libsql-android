@@ -1,0 +1,15 @@
+[package]
+name = "libsql_android"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+crate-type = ["dylib"]
+
+[target.'cfg(target_os="android")'.dependencies]
+jni = { version = "0.21.1", default-features = false }
+
+[dependencies]
+libsql = "0.3.1"
+tokio = { version = "1", features = ["full"] }
+hyper-rustls = { version = "0.25", features = ["webpki-roots"]}
