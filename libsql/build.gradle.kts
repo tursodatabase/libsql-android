@@ -19,6 +19,8 @@ android {
         ndk {
             abiFilters += listOf("armeabi-v7a", "arm64-v8a", "x86", "x86_64")
         }
+
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
     buildTypes {
@@ -36,6 +38,12 @@ android {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
+}
+dependencies {
+    implementation(libs.ext.junit)
+    androidTestImplementation(libs.junit)
+    androidTestImplementation(libs.runner)
+    androidTestImplementation(libs.rules)
 }
 
 cargo {

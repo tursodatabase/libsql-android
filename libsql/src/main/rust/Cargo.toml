@@ -13,3 +13,5 @@ jni = { version = "0.21.1", default-features = false }
 libsql = "0.3.1"
 tokio = { version = "1", features = ["full"] }
 hyper-rustls = { version = "0.25", features = ["webpki-roots"]}
+jni-mangle = "0.1.2"
+jni_fn = "0.1.2"
