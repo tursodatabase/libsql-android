@@ -7,6 +7,10 @@ use std::path::Path;
 const DEFAULT_CLANG_VERSION: &str = "18";
 
 fn main() {
+    prost_build::Config::new()
+        .default_package_filename("proto")
+        .compile_protos(&["../proto/libsql.proto"], &["../proto"])
+        .unwrap();
     setup_x86_64_android_workaround();
 }
 

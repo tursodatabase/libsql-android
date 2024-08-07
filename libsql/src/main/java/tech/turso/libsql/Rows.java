@@ -21,5 +21,6 @@ public class Rows implements AutoCloseable {
     }
 
     private static native Object[] nativeNextRow(long ptr);
+
     private static native void nativeClose(long ptr);
 }

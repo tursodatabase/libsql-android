@@ -6,8 +6,11 @@ edition = "2021"
 [lib]
 crate-type = ["dylib"]
 
-[target.'cfg(target_os="android")'.dependencies]
-jni = { version = "0.21.1", default-features = false }
+[profile.dev]
+panic = "unwind"
+
+[profile.release]
+panic = "unwind"
 
 [dependencies]
 libsql = "0.3.1"
@@ -15,3 +18,11 @@ tokio = { version = "1", features = ["full"] }
 hyper-rustls = { version = "0.25", features = ["webpki-roots"]}
 jni-mangle = "0.1.2"
 jni_fn = "0.1.2"
+jni = { version = "0.21.1", default-features = false }
+prost = "0.13.*"
+prost-types = "0.13.*"
+lazy_static = "1.5.0"
+catch_panic = { git = "https://github.com/sorz/catch_panic.git", branch = "fix-jni-0.21" }
+
+[build-dependencies]
+prost-build = "0.13.1"

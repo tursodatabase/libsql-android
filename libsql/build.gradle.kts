@@ -1,6 +1,12 @@
+import com.google.protobuf.gradle.id
+import com.google.protobuf.gradle.proto
+
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.rust.android)
+
+    id("com.google.protobuf") version "0.9.4"
+    id("com.diffplug.spotless") version "6.25.0"
 }
 
 apply(plugin = "org.mozilla.rust-android-gradle.rust-android")
@@ -8,6 +14,14 @@ apply(plugin = "org.mozilla.rust-android-gradle.rust-android")
 android {
     namespace = "tech.turso.libsql"
     compileSdk = 34
+
+    sourceSets["main"].proto {
+        srcDir("src/main/proto")
+    }
+
+    sourceSets["main"].java {
+        srcDir("build/generated/source/proto")
+    }
 
     defaultConfig {
         minSdk = 21
@@ -28,7 +42,7 @@ android {
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
+                "proguard-rules.pro",
             )
         }
     }
@@ -44,12 +58,14 @@ dependencies {
     androidTestImplementation(libs.junit)
     androidTestImplementation(libs.runner)
     androidTestImplementation(libs.rules)
+    // implementation(libs.protobuf.javalite)
+    implementation("com.google.protobuf:protobuf-java:3.24.0")
 }
 
 cargo {
     module = "./src/main/rust/"
     libname = "libsql_android"
-    targets = listOf("arm", "arm64", "x86", "x86_64")
+    targets = listOf("arm")
     exec = { spec, _ ->
         spec.environment("ANDROID_NDK_HOME", android.ndkDirectory.path)
 
@@ -62,4 +78,33 @@ cargo {
 tasks.matching { it.name.matches(Regex("merge.*JniLibFolders")) }.configureEach {
     inputs.dir(layout.buildDirectory.file("rustJniLibs/android"))
     dependsOn("cargoBuild")
+}
+
+protobuf {
+    protoc {
+        artifact = "com.google.protobuf:protoc:3.0.0"
+    }
+    generateProtoTasks {
+        all().forEach { task ->
+            task.builtins {
+                id("java") {
+                    java { }
+                }
+            }
+        }
+    }
+}
+
+spotless {
+    java {
+        target("src/*/java/**/*.java")
+        importOrder()
+        cleanthat()
+        googleJavaFormat().aosp()
+        formatAnnotations()
+    }
+    kotlinGradle {
+        target("*.gradle.kts") // default target for kotlinGradle
+        ktlint() // or ktfmt() or prettier()
+    }
 }

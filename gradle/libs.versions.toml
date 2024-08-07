@@ -2,14 +2,18 @@
 agp = "8.4.2"
 junit = "4.13.2"
 junitVersion = "1.2.1"
+protobufGradlePlugin = "0.9.4"
+protobufJavalite = "3.19.1"
 
 [libraries]
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 ext-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
+protobuf-javalite = { module = "com.google.protobuf:protobuf-javalite", version.ref = "protobufJavalite" }
 rules = { module = "androidx.test:rules", version = "1.6.1" }
 runner = { module = "androidx.test:runner", version = "1.6.1" }
 
 [plugins]
 android-library = { id = "com.android.library", version.ref = "agp" }
 rust-android = { id = "org.mozilla.rust-android-gradle.rust-android", version = "0.9.4" }
+protobuf = { id = "com.google.protobuf", version.ref = "protobufGradlePlugin" }
 

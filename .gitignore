@@ -14,5 +14,4 @@
 .externalNativeBuild
 .cxx
 local.properties
-libsql_android/src/main/jni/libsql_android/libsql/target
 kls_database.db

@@ -4,11 +4,12 @@ public class Database implements AutoCloseable {
 
     protected long nativePtr;
 
-    Database(long ptr) {
+    Database(long ptr) throws Exception {
+        if (ptr == 0) throw new Exception("we are fucked");
         nativePtr = ptr;
     }
 
-    public Connection connect() {
+    public Connection connect() throws Exception {
         if (nativePtr == 0) return null;
         return new Connection(nativeConnect(nativePtr));
     }
@@ -22,5 +23,6 @@ public class Database implements AutoCloseable {
     }
 
     private static native void nativeClose(long ptr);
-    private static native long nativeConnect(long ptr);
+
+    private static native long nativeConnect(long ptr) throws Exception;
 }
