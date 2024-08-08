@@ -20,4 +20,4 @@ dependencyResolutionManagement {
 }
 
 rootProject.name = "libsql"
-include(":libsql_android")
+include(":libsql")

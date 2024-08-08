@@ -1,0 +1,33 @@
+
+syntax = "proto3";
+
+option java_package = "tech.turso.libsql";
+option java_outer_classname = "Proto";
+option java_multiple_files = true;
+
+message Parameters {
+    oneof params {
+        NamedParameters named = 1;
+        PositionalParameters positional = 2;
+    }
+}
+
+message NamedParameters {
+    map<string, Value> parameters = 1;
+}
+
+message PositionalParameters {
+    repeated Value parameters = 1;
+}
+
+message Value {
+    oneof value {
+        Null null = 1;
+        sint64 integer = 2;
+        double real = 3;
+        string text = 4;
+        bytes blob = 5;
+    }
+
+    message Null {}
+}
