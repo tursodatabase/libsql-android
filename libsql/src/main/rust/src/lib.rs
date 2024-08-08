@@ -2,7 +2,7 @@
 
 use jni::{
     objects::{JByteArray, JClass, JObject, JObjectArray, JString, JValue},
-    sys::{jdouble, jlong, jobjectArray, jstring},
+    sys::{jdouble, jlong, jobjectArray},
     JNIEnv,
 };
 use jni_fn::jni_fn;
@@ -59,77 +59,104 @@ pub fn nativeOpenLocal(mut env: JNIEnv, _: JClass, path: JString) -> jlong {
 }
 
 #[jni_fn("tech.turso.libsql.Libsql")]
-pub fn nativeOpenRemote(env: JNIEnv, _: JClass, url: jstring, auth_token: jstring) -> jlong {
-    let url = unsafe { JString::from_raw(url) };
-    let url: String = unsafe { env.get_string_unchecked(&url) }.unwrap().into();
-    let auth_token = unsafe { JString::from_raw(auth_token) };
-    let auth_token: String = unsafe { env.get_string_unchecked(&auth_token) }
-        .unwrap()
-        .into();
-    let rt = tokio::runtime::Runtime::new().unwrap();
-    let db = rt.block_on(async {
-        let https = hyper_rustls::HttpsConnectorBuilder::new()
-            .with_webpki_roots()
-            .https_or_http()
-            .enable_http1()
-            .build();
-        Builder::new_remote(url, auth_token)
-            .connector(https)
-            .build()
-            .await
-    });
-    (match db {
-        Ok(db) => Box::into_raw(Box::new(db)),
-        Err(_) => ptr::null(),
-    }) as jlong
+pub fn nativeOpenRemote(mut env: JNIEnv, _: JClass, url: JString, auth_token: JString) -> jlong {
+    let url = match env.get_string(&url) {
+        Ok(path) => path,
+        Err(err) => {
+            env.throw(err.to_string()).unwrap();
+            return ptr::null_mut::<Database>() as jlong;
+        }
+    };
+
+    let auth_token = match env.get_string(&auth_token) {
+        Ok(path) => path,
+        Err(err) => {
+            env.throw(err.to_string()).unwrap();
+            return ptr::null_mut::<Database>() as jlong;
+        }
+    };
+
+    let connector = hyper_rustls::HttpsConnectorBuilder::new()
+        .with_webpki_roots()
+        .https_or_http()
+        .enable_http1()
+        .build();
+
+    let db = RT.block_on(
+        Builder::new_remote(url.into(), auth_token.into())
+            .connector(connector)
+            .build(),
+    );
+
+    match db {
+        Ok(db) => Box::into_raw(Box::new(db)) as jlong,
+        Err(_) => ptr::null_mut::<Database>() as jlong,
+    }
 }
 
 #[jni_fn("tech.turso.libsql.Libsql")]
 pub fn nativeOpenEmbeddedReplica(
-    env: JNIEnv,
+    mut env: JNIEnv,
     _: JClass,
-    db_file: jstring,
-    url: jstring,
-    auth_token: jstring,
+    path: JString,
+    url: JString,
+    auth_token: JString,
 ) -> jlong {
-    let db_file = unsafe { JString::from_raw(db_file) };
-    let db_file: String = unsafe { env.get_string_unchecked(&db_file).unwrap().into() };
-    let url = unsafe { JString::from_raw(url) };
-    let url: String = unsafe { env.get_string_unchecked(&url) }.unwrap().into();
-    let auth_token = unsafe { JString::from_raw(auth_token) };
-    let auth_token: String = unsafe { env.get_string_unchecked(&auth_token) }
-        .unwrap()
-        .into();
-    let rt = tokio::runtime::Runtime::new().unwrap();
-    let db = rt.block_on(async {
-        let https = hyper_rustls::HttpsConnectorBuilder::new()
-            .with_webpki_roots()
-            .https_or_http()
-            .enable_http1()
-            .build();
-        Builder::new_remote_replica(db_file, url, auth_token)
-            .connector(https)
-            .build()
-            .await
-    });
-    (match db {
-        Ok(db) => Box::into_raw(Box::new(db)),
-        Err(_) => ptr::null(),
-    }) as jlong
+    let path = match env.get_string(&path) {
+        Ok(path) => path,
+        Err(err) => {
+            env.throw(err.to_string()).unwrap();
+            return ptr::null_mut::<Database>() as jlong;
+        }
+    };
+
+    let url = match env.get_string(&url) {
+        Ok(path) => path,
+        Err(err) => {
+            env.throw(err.to_string()).unwrap();
+            return ptr::null_mut::<Database>() as jlong;
+        }
+    };
+
+    let auth_token = match env.get_string(&auth_token) {
+        Ok(path) => path,
+        Err(err) => {
+            env.throw(err.to_string()).unwrap();
+            return ptr::null_mut::<Database>() as jlong;
+        }
+    };
+
+    let connector = hyper_rustls::HttpsConnectorBuilder::new()
+        .with_webpki_roots()
+        .https_or_http()
+        .enable_http1()
+        .build();
+
+    let db = RT.block_on(
+        Builder::new_remote_replica(&*path.to_string_lossy(), url.into(), auth_token.into())
+            .connector(connector)
+            .build(),
+    );
+
+    match db {
+        Ok(db) => Box::into_raw(Box::new(db)) as jlong,
+        Err(err) => {
+            env.throw(err.to_string()).unwrap();
+            ptr::null_mut::<Database>() as jlong
+        }
+    }
 }
 
 #[jni_fn("tech.turso.libsql.Database")]
 pub fn nativeConnect(mut env: JNIEnv, _: JClass, ptr: jlong) -> jlong {
-    let db = unsafe { Box::from_raw(ptr as *mut Database) };
-    let res = (match db.connect() {
-        Ok(conn) => Box::into_raw(Box::new(conn)),
+    let db = ManuallyDrop::new(unsafe { Box::from_raw(ptr as *mut Database) });
+    match db.connect() {
+        Ok(conn) => Box::into_raw(Box::new(conn)) as jlong,
         Err(err) => {
             env.throw(err.to_string()).unwrap();
-            ptr::null()
+            ptr::null_mut::<Connection>() as jlong
         }
-    }) as jlong;
-    Box::leak(db);
-    res
+    }
 }
 
 #[jni_fn("tech.turso.libsql.Database")]
@@ -138,28 +165,41 @@ pub fn nativeClose(_: JNIEnv, _: JClass, ptr: jlong) {
 }
 
 #[jni_fn("tech.turso.libsql.EmbeddedReplicaDatabase")]
-pub fn nativeSync(_: JNIEnv, _: JClass, ptr: jlong) {
-    let db = unsafe { Box::from_raw(ptr as *mut Database) };
-    let rt = tokio::runtime::Runtime::new().unwrap();
-    let _ = rt.block_on(db.sync()).unwrap();
-    Box::leak(db);
+pub fn nativeSync(mut env: JNIEnv, _: JClass, ptr: jlong) {
+    let db = ManuallyDrop::new(unsafe { Box::from_raw(ptr as *mut Database) });
+
+    match RT.block_on(db.sync()) {
+        Ok(_) => (),
+        Err(err) => env.throw(err.to_string()).unwrap(),
+    }
 }
 
 #[jni_fn("tech.turso.libsql.Connection")]
-pub fn nativeExecute(env: JNIEnv, _: JClass, ptr: jlong, sql: jstring) {
-    let sql = unsafe { JString::from_raw(sql) };
-    let sql: String = unsafe { env.get_string_unchecked(&sql) }.unwrap().into();
-    let db = ManuallyDrop::new(unsafe { Box::from_raw(ptr as *mut Connection) });
-    RT.block_on(db.execute(&sql, ())).unwrap();
-}
-
-#[jni_fn("tech.turso.libsql.Connection")]
-pub fn nativeQuery(mut env: JNIEnv, _: JClass, conn: jlong, sql: JString, buf: JByteArray) {
+pub fn nativeExecute(mut env: JNIEnv, _: JClass, ptr: jlong, sql: JString) {
     let sql = match env.get_string(&sql) {
         Ok(path) => path,
         Err(err) => {
             env.throw(err.to_string()).unwrap();
             return;
+        }
+    };
+    let db = ManuallyDrop::new(unsafe { Box::from_raw(ptr as *mut Connection) });
+    RT.block_on(db.execute(&sql.to_string_lossy(), ())).unwrap();
+}
+
+#[jni_fn("tech.turso.libsql.Connection")]
+pub fn nativeQuery(
+    mut env: JNIEnv,
+    _: JClass,
+    conn: jlong,
+    sql: JString,
+    buf: JByteArray,
+) -> jlong {
+    let sql = match env.get_string(&sql) {
+        Ok(path) => path,
+        Err(err) => {
+            env.throw(err.to_string()).unwrap();
+            return ptr::null_mut::<Rows>() as jlong;
         }
     };
 
@@ -170,7 +210,7 @@ pub fn nativeQuery(mut env: JNIEnv, _: JClass, conn: jlong, sql: JString, buf: J
         Ok(buf) => buf,
         Err(err) => {
             env.throw(err.to_string()).unwrap();
-            return;
+            return ptr::null_mut::<Rows>() as jlong;
         }
     };
 
@@ -178,7 +218,7 @@ pub fn nativeQuery(mut env: JNIEnv, _: JClass, conn: jlong, sql: JString, buf: J
         Ok(params) => params,
         Err(err) => {
             env.throw(err.to_string()).unwrap();
-            return;
+            return ptr::null_mut::<Rows>() as jlong;
         }
     };
 
@@ -194,10 +234,10 @@ pub fn nativeQuery(mut env: JNIEnv, _: JClass, conn: jlong, sql: JString, buf: J
         .collect::<Vec<(String, libsql::Value)>>();
 
     match RT.block_on(conn.query(&sql.to_string_lossy(), params)) {
-        Ok(_) => (),
+        Ok(row) => Box::into_raw(Box::new(row)) as jlong,
         Err(err) => {
             env.throw(err.to_string()).unwrap();
-            return;
+            ptr::null_mut::<Rows>() as jlong
         }
     }
 }
@@ -209,51 +249,47 @@ pub fn nativeClose(_: JNIEnv, _: JClass, ptr: jlong) {
 
 #[jni_fn("tech.turso.libsql.Rows")]
 pub fn nativeNextRow(mut env: JNIEnv, _: JClass, ptr: jlong) -> jobjectArray {
-    let mut rows = unsafe { Box::from_raw(ptr as *mut Rows) };
-    let rt = tokio::runtime::Runtime::new().unwrap();
-    let res = rt
-        .block_on(async {
-            match rows.next().await {
-                Ok(Some(row)) => {
-                    let count = rows.column_count();
-                    match env.new_object_array(count, "java/lang/Object", JObject::null()) {
-                        Ok(arr) => {
-                            for i in 0..count {
-                                let val = row.get_value(i).unwrap();
-                                let obj = match val {
-                                    libsql::Value::Null => JObject::null(),
-                                    libsql::Value::Integer(v) => env
-                                        .new_object(
-                                            "java/lang/Long",
-                                            "(J)V",
-                                            &[JValue::from(v as jlong)],
-                                        )
-                                        .unwrap(),
-                                    libsql::Value::Real(v) => env
-                                        .new_object(
-                                            "java/lang/Double",
-                                            "(D)V",
-                                            &[JValue::from(v as jdouble)],
-                                        )
-                                        .unwrap(),
-                                    libsql::Value::Text(v) => env.new_string(v).unwrap().into(),
-                                    libsql::Value::Blob(v) => {
-                                        env.byte_array_from_slice(&v).unwrap().into()
-                                    }
-                                };
-                                env.set_object_array_element(&arr, i, obj).unwrap();
-                            }
-                            arr
+    let mut rows = ManuallyDrop::new(unsafe { Box::from_raw(ptr as *mut Rows) });
+    RT.block_on(async {
+        match rows.next().await {
+            Ok(Some(row)) => {
+                let count = rows.column_count();
+                match env.new_object_array(count, "java/lang/Object", JObject::null()) {
+                    Ok(arr) => {
+                        for i in 0..count {
+                            let val = row.get_value(i).unwrap();
+                            let obj = match val {
+                                libsql::Value::Null => JObject::null(),
+                                libsql::Value::Integer(v) => env
+                                    .new_object(
+                                        "java/lang/Long",
+                                        "(J)V",
+                                        &[JValue::from(v as jlong)],
+                                    )
+                                    .unwrap(),
+                                libsql::Value::Real(v) => env
+                                    .new_object(
+                                        "java/lang/Double",
+                                        "(D)V",
+                                        &[JValue::from(v as jdouble)],
+                                    )
+                                    .unwrap(),
+                                libsql::Value::Text(v) => env.new_string(v).unwrap().into(),
+                                libsql::Value::Blob(v) => {
+                                    env.byte_array_from_slice(&v).unwrap().into()
+                                }
+                            };
+                            env.set_object_array_element(&arr, i, obj).unwrap();
                         }
-                        _ => JObjectArray::default(),
+                        arr
                     }
+                    _ => JObjectArray::default(),
                 }
-                _ => JObjectArray::default(),
             }
-        })
-        .into_raw();
-    Box::leak(rows);
-    res
+            _ => JObjectArray::default(),
+        }
+    })
+    .into_raw()
 }
 
 #[jni_fn("tech.turso.libsql.Rows")]

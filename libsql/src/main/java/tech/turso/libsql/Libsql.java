@@ -7,20 +7,20 @@ public class Libsql {
         System.loadLibrary("libsql_android");
     }
 
-    public static Database openLocal(String dbFile) throws Exception {
+    public static Database openLocal(String dbFile) {
         return new Database(nativeOpenLocal(dbFile));
     }
 
-    public static Database openRemote(String url, String authToken) throws Exception {
+    public static Database openRemote(String url, String authToken) {
         return new Database(nativeOpenRemote(url, authToken));
     }
 
     public static EmbeddedReplicaDatabase openEmbeddedReplica(
-            String dbFile, String url, String authToken) throws Exception {
+            String dbFile, String url, String authToken) {
         return new EmbeddedReplicaDatabase(nativeOpenEmbeddedReplica(dbFile, url, authToken));
     }
 
-    private static native long nativeOpenLocal(String dbFile) throws Exception;
+    private static native long nativeOpenLocal(String dbFile);
 
     private static native long nativeOpenRemote(String url, String authToken);
 

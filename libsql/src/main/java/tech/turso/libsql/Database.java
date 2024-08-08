@@ -4,12 +4,12 @@ public class Database implements AutoCloseable {
 
     protected long nativePtr;
 
-    Database(long ptr) throws Exception {
-        if (ptr == 0) throw new Exception("we are fucked");
+    Database(long ptr) {
+        if (ptr == 0) throw new RuntimeException("Attempted to construct a Database with a null pointer");
         nativePtr = ptr;
     }
 
-    public Connection connect() throws Exception {
+    public Connection connect() {
         if (nativePtr == 0) return null;
         return new Connection(nativeConnect(nativePtr));
     }
@@ -24,5 +24,5 @@ public class Database implements AutoCloseable {
 
     private static native void nativeClose(long ptr);
 
-    private static native long nativeConnect(long ptr) throws Exception;
+    private static native long nativeConnect(long ptr);
 }

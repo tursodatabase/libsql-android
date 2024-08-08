@@ -58,14 +58,13 @@ dependencies {
     androidTestImplementation(libs.junit)
     androidTestImplementation(libs.runner)
     androidTestImplementation(libs.rules)
-    // implementation(libs.protobuf.javalite)
     implementation("com.google.protobuf:protobuf-java:3.24.0")
 }
 
 cargo {
     module = "./src/main/rust/"
     libname = "libsql_android"
-    targets = listOf("arm")
+    targets = listOf("arm", "arm64", "x86", "x86_64")
     exec = { spec, _ ->
         spec.environment("ANDROID_NDK_HOME", android.ndkDirectory.path)
 

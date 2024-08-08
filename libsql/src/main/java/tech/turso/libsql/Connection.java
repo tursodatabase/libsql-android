@@ -11,26 +11,26 @@ public class Connection implements AutoCloseable {
         nativePtr = ptr;
     }
 
-    public void execute(String sql) throws Exception {
+    public void execute(String sql) {
         Log.i("conn", "executing " + sql);
-        if (nativePtr == 0) throw new Exception("Attempted to execute with null connection");
+        if (nativePtr == 0) throw new RuntimeException("Attempted to execute a null connection");
         nativeExecute(nativePtr, sql);
     }
 
-    public void query(String sql) throws Exception {
+    public void query(String sql) {
         Log.i("conn", "querying " + sql);
-        if (nativePtr == 0) throw new Exception("Attempted to query with null connection");
+        if (nativePtr == 0) throw new RuntimeException("Attempted to query a null connection");
         nativeQuery(nativePtr, sql, new byte[] {});
     }
 
-    public void query(String sql, Map<String, Value> params) throws Exception {
+    public void query(String sql, Map<String, Value> params) {
         var buf =
                 Parameters.newBuilder()
                         .setNamed(NamedParameters.newBuilder().putAllParameters(params))
                         .build()
                         .toByteArray();
         Log.i("conn", "querying " + sql);
-        if (nativePtr == 0) throw new Exception("Attempted to query with null connection");
+        if (nativePtr == 0) throw new RuntimeException("Attempted to query a null connection");
         nativeQuery(nativePtr, sql, buf);
     }
 

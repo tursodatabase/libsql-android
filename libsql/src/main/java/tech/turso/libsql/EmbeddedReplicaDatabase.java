@@ -1,7 +1,7 @@
 package tech.turso.libsql;
 
 public class EmbeddedReplicaDatabase extends Database {
-    EmbeddedReplicaDatabase(long ptr) throws Exception {
+    EmbeddedReplicaDatabase(long ptr) {
         super(ptr);
     }
 
