@@ -12,6 +12,9 @@
 /build
 /captures
 .externalNativeBuild
+.project
+.settings
+.classpath
 .cxx
 local.properties
 kls_database.db
