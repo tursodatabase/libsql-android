@@ -6,7 +6,7 @@ option java_outer_classname = "Proto";
 option java_multiple_files = true;
 
 message Parameters {
-    oneof params {
+    oneof parameters {
         NamedParameters named = 1;
         PositionalParameters positional = 2;
     }

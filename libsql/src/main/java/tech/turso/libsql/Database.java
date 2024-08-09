@@ -5,7 +5,8 @@ public class Database implements AutoCloseable {
     protected long nativePtr;
 
     Database(long ptr) {
-        if (ptr == 0) throw new RuntimeException("Attempted to construct a Database with a null pointer");
+        if (ptr == 0)
+            throw new RuntimeException("Attempted to construct a Database with a null pointer");
         nativePtr = ptr;
     }
 
