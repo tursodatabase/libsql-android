@@ -13,7 +13,7 @@ class Connection internal constructor(private var inner: Long) : AutoCloseable {
 
     fun query(
         sql: String,
-        params: Map<String?, Value?>?,
+        params: Map<String, Value>,
     ) {
         require(this.inner != 0L) { "Attempted to query with a closed Connection" }
 
@@ -28,7 +28,7 @@ class Connection internal constructor(private var inner: Long) : AutoCloseable {
 
     fun query(
         sql: String,
-        vararg params: Value?,
+        vararg params: Value,
     ) {
         require(this.inner != 0L) { "Attempted to query with a closed Connection" }
 
