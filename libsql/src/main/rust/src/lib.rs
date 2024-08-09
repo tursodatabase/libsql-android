@@ -163,7 +163,7 @@ pub fn nativeClose(_: JNIEnv, _: JClass, ptr: jlong) {
     drop(unsafe { Box::from_raw(ptr as *mut Database) });
 }
 
-#[jni_fn("tech.turso.libsql.EmbeddedReplicaDatabase")]
+#[jni_fn("tech.turso.libsql.Database")]
 pub fn nativeSync(mut env: JNIEnv, _: JClass, ptr: jlong) {
     let db = ManuallyDrop::new(unsafe { Box::from_raw(ptr as *mut Database) });
 
