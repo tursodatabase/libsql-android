@@ -7,6 +7,7 @@ plugins {
 
     id("com.google.protobuf") version "0.9.4"
     id("com.diffplug.spotless") version "6.25.0"
+    alias(libs.plugins.jetbrains.kotlin.android)
 }
 
 apply(plugin = "org.mozilla.rust-android-gradle.rust-android")
@@ -52,9 +53,13 @@ android {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
+    kotlinOptions {
+        jvmTarget = "17"
+    }
 }
 dependencies {
     implementation(libs.ext.junit)
+    implementation(libs.core.ktx)
     androidTestImplementation(libs.junit)
     androidTestImplementation(libs.runner)
     androidTestImplementation(libs.rules)
@@ -102,8 +107,12 @@ spotless {
         googleJavaFormat().aosp()
         formatAnnotations()
     }
+    kotlin {
+        target("src/*/java/**/*.kt")
+        ktlint()
+    }
     kotlinGradle {
         target("*.gradle.kts") // default target for kotlinGradle
-        ktlint() // or ktfmt() or prettier()
+        ktlint()
     }
 }
