@@ -7,7 +7,6 @@ use jni::{
 };
 use jni_fn::jni_fn;
 use libsql::{Builder, Connection, Database, Rows};
-use proto::NamedParameters;
 use std::{mem::ManuallyDrop, ptr};
 
 use lazy_static::lazy_static;
@@ -214,7 +213,9 @@ pub fn nativeQuery(
         }
     };
 
-    let params = match proto::Parameters::decode(buf.as_slice()) {
+    use proto::*; // I don't like this, but the alternaive is too verbose
+
+    let Parameters { parameters } = match Parameters::decode(buf.as_slice()) {
         Ok(params) => params,
         Err(err) => {
             env.throw(err.to_string()).unwrap();
@@ -222,24 +223,42 @@ pub fn nativeQuery(
         }
     };
 
-    let proto::parameters::Params::Named(NamedParameters { parameters: params }) =
-        params.params.unwrap()
-    else {
-        unreachable!()
-    };
+    match parameters {
+        Some(parameters::Parameters::Named(NamedParameters { parameters })) => {
+            let parameters = parameters
+                .into_iter()
+                .map(|(k, v)| (k, v.into()))
+                .collect::<Vec<(String, libsql::Value)>>();
 
-    let params = params
-        .into_iter()
-        .map(|(k, v)| (k, v.into()))
-        .collect::<Vec<(String, libsql::Value)>>();
-
-    match RT.block_on(conn.query(&sql.to_string_lossy(), params)) {
-        Ok(row) => Box::into_raw(Box::new(row)) as jlong,
-        Err(err) => {
-            env.throw(err.to_string()).unwrap();
-            ptr::null_mut::<Rows>() as jlong
+            return match RT.block_on(conn.query(&sql.to_string_lossy(), parameters)) {
+                Ok(row) => Box::into_raw(Box::new(row)) as jlong,
+                Err(err) => {
+                    env.throw(err.to_string()).unwrap();
+                    return ptr::null_mut::<Rows>() as jlong;
+                }
+            };
         }
-    }
+        Some(parameters::Parameters::Positional(PositionalParameters { parameters })) => {
+            let parameters: Vec<libsql::Value> = parameters.into_iter().map(|v| v.into()).collect();
+
+            return match RT.block_on(conn.query(&sql.to_string_lossy(), parameters)) {
+                Ok(row) => Box::into_raw(Box::new(row)) as jlong,
+                Err(err) => {
+                    env.throw(err.to_string()).unwrap();
+                    return ptr::null_mut::<Rows>() as jlong;
+                }
+            };
+        }
+        None => {
+            return match RT.block_on(conn.query(&sql.to_string_lossy(), ())) {
+                Ok(row) => Box::into_raw(Box::new(row)) as jlong,
+                Err(err) => {
+                    env.throw(err.to_string()).unwrap();
+                    return ptr::null_mut::<Rows>() as jlong;
+                }
+            }
+        }
+    };
 }
 
 #[jni_fn("tech.turso.libsql.Connection")]
