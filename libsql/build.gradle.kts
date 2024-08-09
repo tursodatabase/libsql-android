@@ -81,7 +81,7 @@ tasks.matching { it.name.matches(Regex("merge.*JniLibFolders")) }.configureEach 
 
 protobuf {
     protoc {
-        artifact = "com.google.protobuf:protoc:3.0.0"
+        artifact = "com.google.protobuf:protoc:3.17.3"
     }
     generateProtoTasks {
         all().forEach { task ->
