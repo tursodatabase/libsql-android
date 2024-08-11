@@ -174,7 +174,7 @@ pub fn nativeSync(mut env: JNIEnv, _: JClass, ptr: jlong) {
 }
 
 #[jni_fn("tech.turso.libsql.Connection")]
-pub fn nativeExecute(mut env: JNIEnv, _: JClass, ptr: jlong, sql: JString) {
+pub fn nativeExecute(mut env: JNIEnv, _: JClass, conn: jlong, sql: JString, buf: JByteArray) {
     let sql = match env.get_string(&sql) {
         Ok(path) => path,
         Err(err) => {
@@ -182,8 +182,52 @@ pub fn nativeExecute(mut env: JNIEnv, _: JClass, ptr: jlong, sql: JString) {
             return;
         }
     };
-    let db = ManuallyDrop::new(unsafe { Box::from_raw(ptr as *mut Connection) });
-    RT.block_on(db.execute(&sql.to_string_lossy(), ())).unwrap();
+
+    let conn = conn as *mut Connection;
+    let conn = ManuallyDrop::new(unsafe { Box::from_raw(conn) });
+
+    let buf = match env.convert_byte_array(buf) {
+        Ok(buf) => buf,
+        Err(err) => {
+            env.throw(err.to_string()).unwrap();
+            return;
+        }
+    };
+
+    use proto::*; // I don't like this, but the alternaive is too verbose
+
+    let Parameters { parameters } = match Parameters::decode(buf.as_slice()) {
+        Ok(params) => params,
+        Err(err) => {
+            env.throw(err.to_string()).unwrap();
+            return;
+        }
+    };
+
+    match parameters {
+        Some(parameters::Parameters::Named(NamedParameters { parameters })) => {
+            let parameters = parameters
+                .into_iter()
+                .map(|(k, v)| (k, v.into()))
+                .collect::<Vec<(String, libsql::Value)>>();
+
+            if let Err(err) = RT.block_on(conn.execute(&sql.to_string_lossy(), parameters)) {
+                env.throw(err.to_string()).unwrap();
+            }
+        }
+        Some(parameters::Parameters::Positional(PositionalParameters { parameters })) => {
+            let parameters: Vec<libsql::Value> = parameters.into_iter().map(|v| v.into()).collect();
+
+            if let Err(err) = RT.block_on(conn.execute(&sql.to_string_lossy(), parameters)) {
+                env.throw(err.to_string()).unwrap();
+            }
+        }
+        None => {
+            if let Err(err) = RT.block_on(conn.execute(&sql.to_string_lossy(), ())) {
+                env.throw(err.to_string()).unwrap();
+            }
+        }
+    }
 }
 
 #[jni_fn("tech.turso.libsql.Connection")]

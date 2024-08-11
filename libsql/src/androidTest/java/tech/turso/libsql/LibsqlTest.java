@@ -11,22 +11,22 @@ import org.junit.runner.RunWith;
 @RunWith(AndroidJUnit4.class)
 public class LibsqlTest {
     @Test
-    public void queryEmptyParameters() {
-        try (var db = Libsql.open(":memory:");
-                var conn = db.connect() ) {
-            conn.query("select 1");
-        }
-    }
-
-    @Test
-    public void failOpenEmptyName() {
+    public void failCloseTwoTimes() {
         try {
             var db = Libsql.open(":memory:");
             db.close();
             db.close();
-            fail("Successfully closed the same db two times");
+            fail("Successfully closed the same Database two times");
         } catch (Throwable e) {
             assertNotNull(e);
+        }
+    }
+
+    @Test
+    public void queryEmptyParameters() {
+        try (var db = Libsql.open(":memory:");
+             var conn = db.connect() ) {
+            conn.query("select 1");
         }
     }
 
@@ -43,6 +43,32 @@ public class LibsqlTest {
         try (var db = Libsql.open(":memory:");
                 var conn = db.connect() ) {
             conn.query("select ?", Value.newBuilder().setInteger(1).build());
+        }
+    }
+
+    @Test
+    public void executeEmptyParameters() {
+        try (var db = Libsql.open(":memory:");
+             var conn = db.connect() ) {
+            conn.execute("create table test(i integer)");
+        }
+    }
+
+    @Test
+    public void executeNamedParameters() {
+        try (var db = Libsql.open(":memory:");
+             var conn = db.connect() ) {
+            conn.execute("create table test(i integer)");
+            conn.execute("insert into test values(:a)", Map.of("a", Value.newBuilder().setInteger(1).build()));
+        }
+    }
+
+    @Test
+    public void executePositionalParameters() {
+        try (var db = Libsql.open(":memory:");
+             var conn = db.connect() ) {
+            conn.execute("create table test(i integer)");
+            conn.execute("insert into test values(?)", Value.newBuilder().setInteger(1).build());
         }
     }
 }
