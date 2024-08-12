@@ -1,5 +1,10 @@
 package tech.turso.libsql
 
+import tech.turso.libsql.proto.Value;
+import tech.turso.libsql.proto.Parameters;
+import tech.turso.libsql.proto.NamedParameters;
+import tech.turso.libsql.proto.PositionalParameters;
+
 class Connection internal constructor(private var inner: Long) : AutoCloseable {
     fun execute(sql: String) {
         require(this.inner != 0L) { "Attempted to execute with a closed Connection" }
@@ -36,15 +41,15 @@ class Connection internal constructor(private var inner: Long) : AutoCloseable {
         nativeQuery(this.inner, sql, buf)
     }
 
-    fun query(sql: String) {
+    fun query(sql: String): Rows {
         require(this.inner != 0L) { "Attempted to query with a closed Connection" }
-        nativeQuery(this.inner, sql, byteArrayOf())
+        return Rows(nativeQuery(this.inner, sql, byteArrayOf()))
     }
 
     fun query(
         sql: String,
         params: Map<String, Value>,
-    ) {
+    ): Rows {
         require(this.inner != 0L) { "Attempted to query with a closed Connection" }
 
         val buf =
@@ -53,13 +58,13 @@ class Connection internal constructor(private var inner: Long) : AutoCloseable {
                 .build()
                 .toByteArray()
 
-        nativeQuery(this.inner, sql, buf)
+        return Rows(nativeQuery(this.inner, sql, buf))
     }
 
     fun query(
         sql: String,
         vararg params: Value,
-    ) {
+    ): Rows {
         require(this.inner != 0L) { "Attempted to query with a closed Connection" }
 
         val buf =
@@ -71,7 +76,7 @@ class Connection internal constructor(private var inner: Long) : AutoCloseable {
                 .build()
                 .toByteArray()
 
-        nativeQuery(this.inner, sql, buf)
+        return Rows(nativeQuery(this.inner, sql, buf))
     }
 
     override fun close() {
