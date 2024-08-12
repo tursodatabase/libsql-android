@@ -2,12 +2,12 @@
 
 use jni::{
     objects::{JByteArray, JClass, JObject, JObjectArray, JString, JValue},
-    sys::{jdouble, jlong, jobjectArray},
+    sys::{jbyteArray, jdouble, jlong, jobjectArray},
     JNIEnv,
 };
 use jni_fn::jni_fn;
 use libsql::{Builder, Connection, Database, Rows};
-use std::{mem::ManuallyDrop, ptr};
+use std::{mem::ManuallyDrop, pin::Pin, ptr};
 
 use lazy_static::lazy_static;
 use prost::Message;
@@ -28,6 +28,30 @@ impl From<proto::Value> for libsql::Value {
             Some(V::Blob(b)) => libsql::Value::Blob(b),
             Some(V::Null(_)) => libsql::Value::Null,
             None => libsql::Value::Null,
+        }
+    }
+}
+
+impl From<libsql::Value> for proto::Value {
+    fn from(value: libsql::Value) -> Self {
+        use proto::value::Value as V;
+
+        match value {
+            libsql::Value::Integer(i) => proto::Value {
+                value: Some(V::Integer(i)),
+            },
+            libsql::Value::Real(r) => proto::Value {
+                value: Some(V::Real(r)),
+            },
+            libsql::Value::Text(s) => proto::Value {
+                value: Some(V::Text(s)),
+            },
+            libsql::Value::Blob(b) => proto::Value {
+                value: Some(V::Blob(b)),
+            },
+            libsql::Value::Null => proto::Value {
+                value: Some(V::Null(proto::value::Null {})),
+            },
         }
     }
 }
@@ -311,48 +335,39 @@ pub fn nativeClose(_: JNIEnv, _: JClass, ptr: jlong) {
 }
 
 #[jni_fn("tech.turso.libsql.Rows")]
-pub fn nativeNextRow(mut env: JNIEnv, _: JClass, ptr: jlong) -> jobjectArray {
+pub fn nativeNext(mut env: JNIEnv, _: JClass, ptr: jlong) -> jbyteArray {
     let mut rows = ManuallyDrop::new(unsafe { Box::from_raw(ptr as *mut Rows) });
-    RT.block_on(async {
-        match rows.next().await {
-            Ok(Some(row)) => {
-                let count = rows.column_count();
-                match env.new_object_array(count, "java/lang/Object", JObject::null()) {
-                    Ok(arr) => {
-                        for i in 0..count {
-                            let val = row.get_value(i).unwrap();
-                            let obj = match val {
-                                libsql::Value::Null => JObject::null(),
-                                libsql::Value::Integer(v) => env
-                                    .new_object(
-                                        "java/lang/Long",
-                                        "(J)V",
-                                        &[JValue::from(v as jlong)],
-                                    )
-                                    .unwrap(),
-                                libsql::Value::Real(v) => env
-                                    .new_object(
-                                        "java/lang/Double",
-                                        "(D)V",
-                                        &[JValue::from(v as jdouble)],
-                                    )
-                                    .unwrap(),
-                                libsql::Value::Text(v) => env.new_string(v).unwrap().into(),
-                                libsql::Value::Blob(v) => {
-                                    env.byte_array_from_slice(&v).unwrap().into()
-                                }
-                            };
-                            env.set_object_array_element(&arr, i, obj).unwrap();
-                        }
-                        arr
-                    }
-                    _ => JObjectArray::default(),
-                }
-            }
-            _ => JObjectArray::default(),
+
+    let row = match RT.block_on(rows.next()) {
+        Ok(row) => row.unwrap(),
+        Err(err) => {
+            env.throw(err.to_string()).unwrap();
+            return JByteArray::default().into_raw();
         }
-    })
-    .into_raw()
+    };
+
+    let mut values = Vec::<proto::Value>::new();
+    for i in 0..rows.column_count() {
+        let value = match row.get_value(i) {
+            Ok(value) => value,
+            Err(err) => {
+                env.throw(err.to_string()).unwrap();
+                return JByteArray::default().into_raw();
+            }
+        };
+        values.push(value.into());
+    }
+
+    let byte_array =
+        match env.byte_array_from_slice(proto::Row { values }.encode_to_vec().as_slice()) {
+            Ok(row) => row,
+            Err(err) => {
+                env.throw(err.to_string()).unwrap();
+                return JByteArray::default().into_raw();
+            }
+        };
+
+    return byte_array.into_raw();
 }
 
 #[jni_fn("tech.turso.libsql.Rows")]

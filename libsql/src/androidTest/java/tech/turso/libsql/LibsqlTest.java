@@ -1,12 +1,17 @@
 package tech.turso.libsql;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
 
 import androidx.test.ext.junit.runners.AndroidJUnit4;
+
+import java.util.List;
 import java.util.Map;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
+import tech.turso.libsql.proto.Value;
 
 @RunWith(AndroidJUnit4.class)
 public class LibsqlTest {
@@ -35,6 +40,17 @@ public class LibsqlTest {
         try (var db = Libsql.open(":memory:");
                 var conn = db.connect() ) {
             conn.query("select :a", Map.of("a", Value.newBuilder().setInteger(1).build()));
+        }
+    }
+
+    @Test
+    public void queryRows() {
+        try (var db = Libsql.open(":memory:");
+             var conn = db.connect() ) {
+            try (var rows = conn.query("select 1", Map.of("a", Value.newBuilder().setInteger(1).build()))) {
+                assertEquals(rows.next(), List.of(Value.newBuilder().setInteger(1).build()));
+            }
+
         }
     }
 
