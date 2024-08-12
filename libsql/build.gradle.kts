@@ -8,6 +8,7 @@ plugins {
     id("com.google.protobuf") version "0.9.4"
     id("com.diffplug.spotless") version "6.25.0"
     alias(libs.plugins.jetbrains.kotlin.android)
+    id("maven-publish")
 }
 
 apply(plugin = "org.mozilla.rust-android-gradle.rust-android")
@@ -16,12 +17,25 @@ android {
     namespace = "tech.turso.libsql"
     compileSdk = 34
 
-    sourceSets["main"].proto {
-        srcDir("src/main/proto")
-    }
+    sourceSets {
+        named("main") {
+            proto {
+                srcDir("src/main/proto")
+            }
+        }
 
-    sourceSets["main"].java {
-        srcDir("build/generated/source/proto")
+        named("debug") {
+            java {
+                srcDir("build/generated/source/proto/debug")
+            }
+        }
+
+        named("release") {
+            java {
+                srcDir("build/generated/source/proto/release")
+            }
+        }
+
     }
 
     defaultConfig {
@@ -53,10 +67,19 @@ android {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
+
     kotlinOptions {
         jvmTarget = "17"
     }
+
+    publishing {
+        singleVariant("release") {
+            withSourcesJar()
+            withJavadocJar()
+        }
+    }
 }
+
 dependencies {
     implementation(libs.ext.junit)
     implementation(libs.core.ktx)
@@ -96,6 +119,8 @@ protobuf {
                 }
             }
         }
+
+
     }
 }
 
@@ -114,5 +139,41 @@ spotless {
     kotlinGradle {
         target("*.gradle.kts") // default target for kotlinGradle
         ktlint()
+    }
+}
+
+publishing {
+    publications {
+        create<MavenPublication>("release") {
+            groupId = "tech.turso.libsql"
+            artifactId = "libsql"
+            version = "0.1.0"
+
+            afterEvaluate {
+                from(components.getByName("release"))
+            }
+
+            pom {
+                developers {
+                    developer {
+                        id = "haaawk"
+                        name = "Piotr Jastrzebski"
+                        email = "piotr@turso.tech"
+                    }
+
+                    developer {
+                        id = "levydsa"
+                        name = "Levy Albuquerque"
+                        email = "levy@turso.tech"
+                    }
+                }
+            }
+        }
+    }
+
+    repositories {
+        maven {
+            url = uri(layout.buildDirectory.dir("staging-deploy"))
+        }
     }
 }
