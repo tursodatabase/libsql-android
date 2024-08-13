@@ -9,7 +9,7 @@ import org.junit.runner.RunWith;
 public class LibsqlTest {
     @Test
     public void queryEmptyParameters() {
-        try (var db = Libsql.openLocal(":memory:");
+        try (var db = Libsql.open(":memory:");
                 var conn = db.connect(); ) {
             conn.query("select 1");
         }
@@ -17,7 +17,7 @@ public class LibsqlTest {
 
     @Test
     public void queryNamedParameters() {
-        try (var db = Libsql.openLocal(":memory:");
+        try (var db = Libsql.open(":memory:");
                 var conn = db.connect(); ) {
             conn.query("select :a", Map.of("a", Value.newBuilder().setInteger(1).build()));
         }
@@ -25,7 +25,7 @@ public class LibsqlTest {
 
     @Test
     public void queryPositionalParameters() {
-        try (var db = Libsql.openLocal(":memory:");
+        try (var db = Libsql.open(":memory:");
                 var conn = db.connect(); ) {
             conn.query("select ?", Value.newBuilder().setInteger(1).build());
         }
