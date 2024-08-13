@@ -5,7 +5,7 @@ import tech.turso.libsql.proto.Parameters;
 import tech.turso.libsql.proto.NamedParameters;
 import tech.turso.libsql.proto.PositionalParameters;
 
-open class Connection internal constructor(protected var inner: Long) : AutoCloseable {
+class Connection internal constructor(private var inner: Long) : AutoCloseable {
     fun execute(sql: String) {
         require(this.inner != 0L) { "Attempted to execute with a closed Connection" }
         nativeExecute(this.inner, sql, byteArrayOf())
