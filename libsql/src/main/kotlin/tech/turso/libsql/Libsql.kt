@@ -23,8 +23,8 @@ object Libsql {
         path: String,
         url: String,
         authToken: String,
-    ): Database {
-        return Database(nativeOpenEmbeddedReplica(path, url, authToken))
+    ): EmbeddedReplicaDatabase {
+        return EmbeddedReplicaDatabase(nativeOpenEmbeddedReplica(path, url, authToken))
     }
 
     private external fun nativeOpenLocal(path: String): Long
