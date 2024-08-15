@@ -6,7 +6,7 @@ use jni::{
     JNIEnv,
 };
 use jni_fn::jni_fn;
-use libsql::{Builder, Connection, Database, Rows};
+use libsql::{Builder, Connection, Database, Rows, Transaction};
 use std::{mem::ManuallyDrop, ptr};
 
 use lazy_static::lazy_static;
@@ -242,6 +242,20 @@ pub fn nativeQuery(
         Err(err) => {
             env.throw(err.to_string()).unwrap();
             return ptr::null_mut::<Rows>() as jlong;
+        }
+    }
+}
+
+#[jni_fn("tech.turso.libsql.Connection")]
+pub fn nativeTransaction(mut env: JNIEnv, _: JClass, conn: jlong) -> jlong {
+    let conn = conn as *mut Connection;
+    let conn = ManuallyDrop::new(unsafe { Box::from_raw(conn) });
+
+    match RT.block_on(conn.transaction()) {
+        Ok(t) => Box::into_raw(Box::new(t)) as jlong,
+        Err(err) => {
+            env.throw(err.to_string()).unwrap();
+            return ptr::null_mut::<Transaction>() as jlong;
         }
     }
 }
