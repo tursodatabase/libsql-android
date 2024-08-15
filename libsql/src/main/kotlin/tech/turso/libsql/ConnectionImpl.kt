@@ -5,7 +5,7 @@ import tech.turso.libsql.proto.Parameters;
 import tech.turso.libsql.proto.NamedParameters;
 import tech.turso.libsql.proto.PositionalParameters;
 
-class Connection internal constructor(private var inner: Long) : AutoCloseable {
+open class Connection internal constructor(private var inner: Long) : AutoCloseable {
     fun execute(sql: String) {
         require(this.inner != 0L) { "Attempted to execute with a closed Connection" }
         nativeExecute(this.inner, sql, byteArrayOf())
@@ -79,6 +79,11 @@ class Connection internal constructor(private var inner: Long) : AutoCloseable {
         return Rows(nativeQuery(this.inner, sql, buf))
     }
 
+    fun transaction() {
+        require(this.inner != 0L) { "Database already closed" }
+        return Transaction(nativeTransaction(this.inner))
+    }
+
     override fun close() {
         require(this.inner != 0L) { "Database already closed" }
         nativeClose(this.inner)
@@ -95,6 +100,10 @@ class Connection internal constructor(private var inner: Long) : AutoCloseable {
         conn: Long,
         sql: String,
         buf: ByteArray,
+    ): Long
+
+    private external fun nativeTransaction(
+        conn: Long,
     ): Long
 
     private external fun nativeClose(conn: Long)
