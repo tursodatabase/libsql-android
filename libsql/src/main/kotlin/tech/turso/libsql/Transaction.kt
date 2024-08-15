@@ -7,6 +7,11 @@ import tech.turso.libsql.proto.PositionalParameters
 import tech.turso.libsql.proto.Value
 
 class Transaction internal constructor(private var inner: Long) : Connection {
+    override fun executeBatch(sql: String) {
+        require(this.inner != 0L) { "Attempted to execute with a closed Connection" }
+        nativeExecuteBatch(this.inner, sql)
+    }
+
     override fun execute(sql: String) {
         require(this.inner != 0L) { "Attempted to execute with a closed Transaction" }
         nativeExecute(this.inner, sql, byteArrayOf())
@@ -105,6 +110,11 @@ class Transaction internal constructor(private var inner: Long) : Connection {
         nativeRollback(this.inner)
         this.inner = 0L
     }
+
+    private external fun nativeExecuteBatch(
+        conn: Long,
+        sql: String,
+    )
 
     private external fun nativeExecute(
         conn: Long,

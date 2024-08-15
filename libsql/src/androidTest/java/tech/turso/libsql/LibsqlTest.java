@@ -80,6 +80,18 @@ public class LibsqlTest {
     }
 
     @Test
+    public void executeBatch() {
+        try (var db = Libsql.open(":memory:");
+                var conn = db.connect()) {
+            conn.executeBatch(
+                    "create table test(i integer);"
+                            + "insert into test values(1);"
+                            + "insert into test values(2);"
+                            + "insert into test values(3);");
+        }
+    }
+
+    @Test
     public void executePositionalParameters() {
         try (var db = Libsql.open(":memory:");
                 var conn = db.connect()) {

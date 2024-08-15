@@ -6,6 +6,11 @@ import tech.turso.libsql.proto.PositionalParameters
 import tech.turso.libsql.proto.Value
 
 open class ConnectionImpl internal constructor(private var inner: Long) : Connection {
+    override fun executeBatch(sql: String) {
+        require(this.inner != 0L) { "Attempted to batch execute with a closed Connection" }
+        nativeExecuteBatch(this.inner, sql)
+    }
+
     override fun execute(sql: String) {
         require(this.inner != 0L) { "Attempted to execute with a closed Connection" }
         nativeExecute(this.inner, sql, byteArrayOf())
@@ -97,6 +102,11 @@ open class ConnectionImpl internal constructor(private var inner: Long) : Connec
         conn: Long,
         sql: String,
         buf: ByteArray,
+    )
+
+    private external fun nativeExecuteBatch(
+        conn: Long,
+        sql: String,
     )
 
     private external fun nativeQuery(
