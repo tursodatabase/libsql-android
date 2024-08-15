@@ -132,7 +132,7 @@ spotless {
         formatAnnotations()
     }
     kotlin {
-        target("src/*/java/**/*.kt")
+        target("src/*/kotlin/**/*.kt")
         ktlint()
     }
     kotlinGradle {
