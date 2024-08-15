@@ -23,6 +23,7 @@ prost = "0.13.*"
 prost-types = "0.13.*"
 lazy_static = "1.5.0"
 catch_panic = { git = "https://github.com/sorz/catch_panic.git", branch = "fix-jni-0.21" }
+anyhow = "1.0.86"
 
 [build-dependencies]
 prost-build = "0.13.1"
