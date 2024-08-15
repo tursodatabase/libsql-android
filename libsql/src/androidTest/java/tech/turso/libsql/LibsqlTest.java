@@ -5,12 +5,10 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
 
 import androidx.test.ext.junit.runners.AndroidJUnit4;
-
 import java.util.List;
 import java.util.Map;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
 import tech.turso.libsql.proto.Value;
 
 @RunWith(AndroidJUnit4.class)
@@ -30,7 +28,7 @@ public class LibsqlTest {
     @Test
     public void queryEmptyParameters() {
         try (var db = Libsql.open(":memory:");
-             var conn = db.connect() ) {
+                var conn = db.connect()) {
             conn.query("select 1");
         }
     }
@@ -38,7 +36,7 @@ public class LibsqlTest {
     @Test
     public void queryNamedParameters() {
         try (var db = Libsql.open(":memory:");
-                var conn = db.connect() ) {
+                var conn = db.connect()) {
             conn.query("select :a", Map.of("a", Value.newBuilder().setInteger(1).build()));
         }
     }
@@ -46,18 +44,18 @@ public class LibsqlTest {
     @Test
     public void queryRows() {
         try (var db = Libsql.open(":memory:");
-             var conn = db.connect() ) {
-            try (var rows = conn.query("select 1", Map.of("a", Value.newBuilder().setInteger(1).build()))) {
+                var conn = db.connect()) {
+            try (var rows =
+                    conn.query("select 1", Map.of("a", Value.newBuilder().setInteger(1).build()))) {
                 assertEquals(rows.next(), List.of(Value.newBuilder().setInteger(1).build()));
             }
-
         }
     }
 
     @Test
     public void queryPositionalParameters() {
         try (var db = Libsql.open(":memory:");
-                var conn = db.connect() ) {
+                var conn = db.connect()) {
             conn.query("select ?", Value.newBuilder().setInteger(1).build());
         }
     }
@@ -65,7 +63,7 @@ public class LibsqlTest {
     @Test
     public void executeEmptyParameters() {
         try (var db = Libsql.open(":memory:");
-             var conn = db.connect() ) {
+                var conn = db.connect()) {
             conn.execute("create table test(i integer)");
         }
     }
@@ -73,16 +71,18 @@ public class LibsqlTest {
     @Test
     public void executeNamedParameters() {
         try (var db = Libsql.open(":memory:");
-             var conn = db.connect() ) {
+                var conn = db.connect()) {
             conn.execute("create table test(i integer)");
-            conn.execute("insert into test values(:a)", Map.of("a", Value.newBuilder().setInteger(1).build()));
+            conn.execute(
+                    "insert into test values(:a)",
+                    Map.of("a", Value.newBuilder().setInteger(1).build()));
         }
     }
 
     @Test
     public void executePositionalParameters() {
         try (var db = Libsql.open(":memory:");
-             var conn = db.connect() ) {
+                var conn = db.connect()) {
             conn.execute("create table test(i integer)");
             conn.execute("insert into test values(?)", Value.newBuilder().setInteger(1).build());
         }
