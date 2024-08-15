@@ -7,7 +7,7 @@ open class Database internal constructor(protected var inner: Long) : AutoClosea
 
     fun connect(): Connection {
         require(this.inner != 0L) { "Attempted to connect to a closed Database" }
-        return Connection(nativeConnect(this.inner))
+        return ConnectionImpl(nativeConnect(this.inner))
     }
 
     override fun close() {

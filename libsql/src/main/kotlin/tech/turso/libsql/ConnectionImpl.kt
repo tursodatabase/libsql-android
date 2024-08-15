@@ -1,17 +1,18 @@
 package tech.turso.libsql
 
+import Transaction
 import tech.turso.libsql.proto.Value;
 import tech.turso.libsql.proto.Parameters;
 import tech.turso.libsql.proto.NamedParameters;
 import tech.turso.libsql.proto.PositionalParameters;
 
-open class Connection internal constructor(private var inner: Long) : AutoCloseable {
-    fun execute(sql: String) {
+open class ConnectionImpl internal constructor(private var inner: Long) : Connection {
+    override fun execute(sql: String) {
         require(this.inner != 0L) { "Attempted to execute with a closed Connection" }
         nativeExecute(this.inner, sql, byteArrayOf())
     }
 
-    fun execute(sql: String, params: Map<String, Value>) {
+    override fun execute(sql: String, params: Map<String, Value>) {
         require(this.inner != 0L) { "Attempted to execute with a closed Connection" }
 
         val buf =
@@ -23,7 +24,7 @@ open class Connection internal constructor(private var inner: Long) : AutoClosea
         nativeExecute(this.inner, sql, buf)
     }
 
-    fun execute(
+    override fun execute(
         sql: String,
         vararg params: Value,
     ) {
@@ -41,12 +42,12 @@ open class Connection internal constructor(private var inner: Long) : AutoClosea
         nativeQuery(this.inner, sql, buf)
     }
 
-    fun query(sql: String): Rows {
+    override fun query(sql: String): Rows {
         require(this.inner != 0L) { "Attempted to query with a closed Connection" }
         return Rows(nativeQuery(this.inner, sql, byteArrayOf()))
     }
 
-    fun query(
+    override fun query(
         sql: String,
         params: Map<String, Value>,
     ): Rows {
@@ -61,7 +62,7 @@ open class Connection internal constructor(private var inner: Long) : AutoClosea
         return Rows(nativeQuery(this.inner, sql, buf))
     }
 
-    fun query(
+    override fun query(
         sql: String,
         vararg params: Value,
     ): Rows {
@@ -79,7 +80,7 @@ open class Connection internal constructor(private var inner: Long) : AutoClosea
         return Rows(nativeQuery(this.inner, sql, buf))
     }
 
-    fun transaction() {
+    override fun transaction(): Transaction {
         require(this.inner != 0L) { "Database already closed" }
         return Transaction(nativeTransaction(this.inner))
     }
