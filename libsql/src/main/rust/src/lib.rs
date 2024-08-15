@@ -217,6 +217,18 @@ pub fn nativeExecute(mut env: JNIEnv, _: JClass, conn: jlong, sql: JString, buf:
 }
 
 #[jni_fn("tech.turso.libsql.ConnectionImpl")]
+pub fn nativeExecuteBatch(mut env: JNIEnv, _: JClass, tx: jlong, sql: JString) {
+    match (|| -> anyhow::Result<()> {
+        let tx = ManuallyDrop::new(unsafe { Box::from_raw(tx as *mut Connection) });
+        let sql = env.get_string(&sql)?;
+        Ok(RT.block_on(tx.execute_batch(&sql.to_string_lossy()))?)
+    })() {
+        Ok(_) => (),
+        Err(err) => env.throw(err.to_string()).unwrap(),
+    }
+}
+
+#[jni_fn("tech.turso.libsql.ConnectionImpl")]
 pub fn nativeQuery(
     mut env: JNIEnv,
     _: JClass,
@@ -291,6 +303,18 @@ pub fn nativeExecute(mut env: JNIEnv, _: JClass, tx: jlong, sql: JString, buf: J
         let sql = env.get_string(&sql)?;
         let buf = env.convert_byte_array(buf)?;
         Ok(execute(&tx, &sql.to_string_lossy(), buf)?)
+    })() {
+        Ok(_) => (),
+        Err(err) => env.throw(err.to_string()).unwrap(),
+    }
+}
+
+#[jni_fn("tech.turso.libsql.Transaction")]
+pub fn nativeExecuteBatch(mut env: JNIEnv, _: JClass, tx: jlong, sql: JString) {
+    match (|| -> anyhow::Result<()> {
+        let tx = ManuallyDrop::new(unsafe { Box::from_raw(tx as *mut Transaction) });
+        let sql = env.get_string(&sql)?;
+        Ok(RT.block_on(tx.execute_batch(&sql.to_string_lossy()))?)
     })() {
         Ok(_) => (),
         Err(err) => env.throw(err.to_string()).unwrap(),

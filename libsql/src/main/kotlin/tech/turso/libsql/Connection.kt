@@ -5,6 +5,8 @@ import tech.turso.libsql.proto.Value
 interface Connection : AutoCloseable {
     fun execute(sql: String)
 
+    fun executeBatch(sql: String)
+
     fun execute(
         sql: String,
         params: Map<String, Value>,
