@@ -1,9 +1,9 @@
 package tech.turso.libsql
 
-import tech.turso.libsql.proto.Value;
-import tech.turso.libsql.proto.Parameters;
-import tech.turso.libsql.proto.NamedParameters;
-import tech.turso.libsql.proto.PositionalParameters;
+import tech.turso.libsql.proto.NamedParameters
+import tech.turso.libsql.proto.Parameters
+import tech.turso.libsql.proto.PositionalParameters
+import tech.turso.libsql.proto.Value
 
 open class ConnectionImpl internal constructor(private var inner: Long) : Connection {
     override fun execute(sql: String) {
@@ -11,7 +11,10 @@ open class ConnectionImpl internal constructor(private var inner: Long) : Connec
         nativeExecute(this.inner, sql, byteArrayOf())
     }
 
-    override fun execute(sql: String, params: Map<String, Value>) {
+    override fun execute(
+        sql: String,
+        params: Map<String, Value>,
+    ) {
         require(this.inner != 0L) { "Attempted to execute with a closed Connection" }
 
         val buf =
@@ -102,9 +105,7 @@ open class ConnectionImpl internal constructor(private var inner: Long) : Connec
         buf: ByteArray,
     ): Long
 
-    private external fun nativeTransaction(
-        conn: Long,
-    ): Long
+    private external fun nativeTransaction(conn: Long): Long
 
     private external fun nativeClose(conn: Long)
 }

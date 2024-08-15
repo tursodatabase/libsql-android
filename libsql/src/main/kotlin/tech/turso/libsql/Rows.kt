@@ -1,7 +1,7 @@
 package tech.turso.libsql
 
-import tech.turso.libsql.proto.Row;
-import tech.turso.libsql.proto.Value;
+import tech.turso.libsql.proto.Row
+import tech.turso.libsql.proto.Value
 
 class Rows internal constructor(private var inner: Long) : AutoCloseable {
     init {

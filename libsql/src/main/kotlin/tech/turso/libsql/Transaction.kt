@@ -12,7 +12,10 @@ class Transaction internal constructor(private var inner: Long) : Connection {
         nativeExecute(this.inner, sql, byteArrayOf())
     }
 
-    override fun execute(sql: String, params: Map<String, Value>) {
+    override fun execute(
+        sql: String,
+        params: Map<String, Value>,
+    ) {
         require(this.inner != 0L) { "Attempted to execute with a closed Transaction" }
 
         val buf =
@@ -91,6 +94,18 @@ class Transaction internal constructor(private var inner: Long) : Connection {
         this.inner = 0L
     }
 
+    fun commit() {
+        require(this.inner != 0L) { "Transaction already closed" }
+        nativeCommit(this.inner)
+        this.inner = 0L
+    }
+
+    fun rollback() {
+        require(this.inner != 0L) { "Transaction already closed" }
+        nativeRollback(this.inner)
+        this.inner = 0L
+    }
+
     private external fun nativeExecute(
         conn: Long,
         sql: String,
@@ -104,6 +119,10 @@ class Transaction internal constructor(private var inner: Long) : Connection {
     ): Long
 
     private external fun nativeTransaction(conn: Long): Long
+
+    private external fun nativeCommit(conn: Long)
+
+    private external fun nativeRollback(conn: Long)
 
     private external fun nativeClose(conn: Long)
 }

@@ -327,6 +327,30 @@ pub fn nativeTransaction(mut env: JNIEnv, _: JClass, tx: jlong) -> jlong {
 }
 
 #[jni_fn("tech.turso.libsql.Transaction")]
+pub fn nativeCommit(mut env: JNIEnv, _: JClass, tx: jlong) {
+    let tx = unsafe { Box::from_raw(tx as *mut Transaction) };
+
+    match RT.block_on(tx.commit()) {
+        Ok(_) => (),
+        Err(err) => {
+            env.throw(err.to_string()).unwrap();
+        }
+    }
+}
+
+#[jni_fn("tech.turso.libsql.Transaction")]
+pub fn nativeRollback(mut env: JNIEnv, _: JClass, tx: jlong) {
+    let tx = unsafe { Box::from_raw(tx as *mut Transaction) };
+
+    match RT.block_on(tx.rollback()) {
+        Ok(_) => (),
+        Err(err) => {
+            env.throw(err.to_string()).unwrap();
+        }
+    }
+}
+
+#[jni_fn("tech.turso.libsql.Transaction")]
 pub fn nativeClose(_: JNIEnv, _: JClass, tx: jlong) {
     drop(unsafe { Box::from_raw(tx as *mut Transaction) });
 }
