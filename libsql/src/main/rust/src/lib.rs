@@ -203,7 +203,7 @@ pub fn nativeSync(mut env: JNIEnv, _: JClass, db: jlong) {
     }
 }
 
-#[jni_fn("tech.turso.libsql.Connection")]
+#[jni_fn("tech.turso.libsql.ConnectionImpl")]
 pub fn nativeExecute(mut env: JNIEnv, _: JClass, conn: jlong, sql: JString, buf: JByteArray) {
     match (|| -> anyhow::Result<u64> {
         let conn = ManuallyDrop::new(unsafe { Box::from_raw(conn as *mut Connection) });
@@ -216,7 +216,7 @@ pub fn nativeExecute(mut env: JNIEnv, _: JClass, conn: jlong, sql: JString, buf:
     }
 }
 
-#[jni_fn("tech.turso.libsql.Connection")]
+#[jni_fn("tech.turso.libsql.ConnectionImpl")]
 pub fn nativeQuery(
     mut env: JNIEnv,
     _: JClass,
@@ -238,7 +238,7 @@ pub fn nativeQuery(
     }
 }
 
-#[jni_fn("tech.turso.libsql.Connection")]
+#[jni_fn("tech.turso.libsql.ConnectionImpl")]
 pub fn nativeTransaction(mut env: JNIEnv, _: JClass, conn: jlong) -> jlong {
     let conn = ManuallyDrop::new(unsafe { Box::from_raw(conn as *mut Connection) });
 
@@ -251,7 +251,7 @@ pub fn nativeTransaction(mut env: JNIEnv, _: JClass, conn: jlong) -> jlong {
     }
 }
 
-#[jni_fn("tech.turso.libsql.Connection")]
+#[jni_fn("tech.turso.libsql.ConnectionImpl")]
 pub fn nativeClose(_: JNIEnv, _: JClass, conn: jlong) {
     drop(unsafe { Box::from_raw(conn as *mut Connection) });
 }
