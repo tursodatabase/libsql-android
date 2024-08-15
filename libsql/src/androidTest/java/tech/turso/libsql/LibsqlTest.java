@@ -91,70 +91,77 @@ public class LibsqlTest {
     @Test
     public void transactionQueryEmptyParameters() {
         try (var db = Libsql.open(":memory:");
-             var conn = db.connect();
-             var tx = conn.transaction()) {
+                var conn = db.connect()) {
+            var tx = conn.transaction();
             tx.query("select 1");
+            tx.commit();
         }
     }
 
     @Test
     public void transactionQueryNamedParameters() {
         try (var db = Libsql.open(":memory:");
-             var conn = db.connect();
-             var tx = conn.transaction()) {
+                var conn = db.connect(); ) {
+            var tx = conn.transaction();
             tx.query("select :a", Map.of("a", Value.newBuilder().setInteger(1).build()));
+            tx.commit();
         }
     }
 
     @Test
     public void transactionQueryRows() {
         try (var db = Libsql.open(":memory:");
-             var conn = db.connect();
-             var tx = conn.transaction()) {
+                var conn = db.connect()) {
+            var tx = conn.transaction();
             try (var rows =
-                         tx.query("select 1", Map.of("a", Value.newBuilder().setInteger(1).build()))) {
+                    tx.query("select 1", Map.of("a", Value.newBuilder().setInteger(1).build()))) {
                 assertEquals(rows.next(), List.of(Value.newBuilder().setInteger(1).build()));
             }
+            tx.commit();
         }
     }
 
     @Test
     public void transactionQueryPositionalParameters() {
         try (var db = Libsql.open(":memory:");
-             var conn = db.connect();
-             var tx = conn.transaction()) {
+                var conn = db.connect()) {
+            var tx = conn.transaction();
             conn.query("select ?", Value.newBuilder().setInteger(1).build());
+            tx.commit();
         }
     }
 
     @Test
     public void transactionExecuteEmptyParameters() {
         try (var db = Libsql.open(":memory:");
-             var conn = db.connect();
-             var tx = conn.transaction()) {
+                var conn = db.connect()) {
+            var tx = conn.transaction();
             tx.execute("create table test(i integer)");
+            tx.commit();
         }
     }
 
     @Test
     public void transactionExecuteNamedParameters() {
         try (var db = Libsql.open(":memory:");
-             var conn = db.connect();
-             var tx = conn.transaction()) {
+                var conn = db.connect()) {
+            var tx = conn.transaction();
             tx.execute("create table test(i integer)");
             tx.execute(
                     "insert into test values(:a)",
                     Map.of("a", Value.newBuilder().setInteger(1).build()));
+            tx.commit();
         }
     }
 
     @Test
     public void transactionExecutePositionalParameters() {
         try (var db = Libsql.open(":memory:");
-             var conn = db.connect();
-             var tx = conn.transaction()) {
+                var conn = db.connect()) {
+            var tx = conn.transaction();
             tx.execute("create table test(i integer)");
             tx.execute("insert into test values(?)", Value.newBuilder().setInteger(1).build());
+            tx.commit();
         }
     }
 }
