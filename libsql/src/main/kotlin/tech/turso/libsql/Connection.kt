@@ -1,6 +1,5 @@
 package tech.turso.libsql
 
-import Transaction
 import tech.turso.libsql.proto.Value
 
 interface Connection : AutoCloseable {
@@ -29,4 +28,6 @@ interface Connection : AutoCloseable {
     ): Rows
 
     fun transaction(): Transaction
+
+    override fun close()
 }

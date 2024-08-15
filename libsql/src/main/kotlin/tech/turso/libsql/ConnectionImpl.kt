@@ -1,6 +1,5 @@
 package tech.turso.libsql
 
-import Transaction
 import tech.turso.libsql.proto.Value;
 import tech.turso.libsql.proto.Parameters;
 import tech.turso.libsql.proto.NamedParameters;
