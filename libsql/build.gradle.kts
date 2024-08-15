@@ -4,11 +4,13 @@ import com.google.protobuf.gradle.proto
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.rust.android)
+    alias(libs.plugins.jetbrains.kotlin.android)
 
     id("com.google.protobuf") version "0.9.4"
     id("com.diffplug.spotless") version "6.25.0"
-    alias(libs.plugins.jetbrains.kotlin.android)
+
     id("maven-publish")
+    signing
 }
 
 apply(plugin = "org.mozilla.rust-android-gradle.rust-android")
@@ -35,7 +37,6 @@ android {
                 srcDir("build/generated/source/proto/release")
             }
         }
-
     }
 
     defaultConfig {
@@ -119,8 +120,6 @@ protobuf {
                 }
             }
         }
-
-
     }
 }
 
@@ -154,6 +153,16 @@ publishing {
             }
 
             pom {
+                name = artifactId
+                description = "Java bindings for libSQL"
+
+                licenses {
+                    license {
+                        name = "The MIT License"
+                        url = "https://opensource.org/license/MIT"
+                    }
+                }
+
                 developers {
                     developer {
                         id = "haaawk"
@@ -167,6 +176,12 @@ publishing {
                         email = "levy@turso.tech"
                     }
                 }
+
+                scm {
+                    connection = "scm:git:git://github.com/tursodatabase/libsql_android.git"
+                    developerConnection = "scm:git:ssh://github.com:tursodatabase/libsql_android.git"
+                    url = "https://github.com/tursodatabase/libsql_android"
+                }
             }
         }
     }
@@ -176,4 +191,13 @@ publishing {
             url = uri(layout.buildDirectory.dir("staging-deploy"))
         }
     }
+}
+
+signing {
+    useGpgCmd()
+    sign(publishing.publications.getByName("release"))
+}
+
+tasks.withType<AbstractPublishToMaven>().configureEach {
+    dependsOn(tasks.withType<Sign>())
 }
