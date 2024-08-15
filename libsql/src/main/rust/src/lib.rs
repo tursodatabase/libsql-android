@@ -1,13 +1,13 @@
 #![allow(non_snake_case)]
 
 use jni::{
-    objects::{JByteArray, JClass, JObject, JObjectArray, JString, JValue},
-    sys::{jbyteArray, jdouble, jlong, jobjectArray},
+    objects::{JByteArray, JClass, JString},
+    sys::{jbyteArray, jlong},
     JNIEnv,
 };
 use jni_fn::jni_fn;
 use libsql::{Builder, Connection, Database, Rows};
-use std::{mem::ManuallyDrop, pin::Pin, ptr};
+use std::{mem::ManuallyDrop, ptr};
 
 use lazy_static::lazy_static;
 use prost::Message;
