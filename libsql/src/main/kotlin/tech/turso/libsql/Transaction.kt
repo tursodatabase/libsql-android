@@ -19,9 +19,23 @@ class Transaction internal constructor(private var inner: Long) : Connection {
 
     override fun execute(
         sql: String,
-        params: Map<String, Value>,
+        params: Map<String, Any?>,
     ) {
         require(this.inner != 0L) { "Attempted to execute with a closed Transaction" }
+
+        val params: Map<String, Value> = params.mapValues {
+            when (val value = it.value) {
+                is Int -> Value.newBuilder().setInteger(value.toLong()).build()
+                is Long -> Value.newBuilder().setInteger(value).build()
+                is String -> Value.newBuilder().setText(value).build()
+                is Float -> Value.newBuilder().setReal(value.toDouble()).build()
+                is Double-> Value.newBuilder().setReal(value).build()
+                null -> Value.newBuilder().setNull(Value.Null.newBuilder().build()).build()
+                else -> {
+                    throw IllegalArgumentException("Type not supported")
+                }
+            }
+        }
 
         val buf =
             Parameters.newBuilder()
@@ -34,15 +48,29 @@ class Transaction internal constructor(private var inner: Long) : Connection {
 
     override fun execute(
         sql: String,
-        vararg params: Value,
+        vararg params: Any?,
     ) {
         require(this.inner != 0L) { "Attempted to execute with a closed Transaction" }
+
+        val params = params.asList().map {
+            when (val value = it) {
+                is Int -> Value.newBuilder().setInteger(value.toLong()).build()
+                is Long -> Value.newBuilder().setInteger(value).build()
+                is String -> Value.newBuilder().setText(value).build()
+                is Float -> Value.newBuilder().setReal(value.toDouble()).build()
+                is Double-> Value.newBuilder().setReal(value).build()
+                null -> Value.newBuilder().setNull(Value.Null.newBuilder().build()).build()
+                else -> {
+                    throw IllegalArgumentException("Type not supported")
+                }
+            }
+        }
 
         val buf =
             Parameters.newBuilder()
                 .setPositional(
                     PositionalParameters.newBuilder()
-                        .addAllParameters(params.asList()),
+                        .addAllParameters(params),
                 )
                 .build()
                 .toByteArray()
@@ -57,9 +85,23 @@ class Transaction internal constructor(private var inner: Long) : Connection {
 
     override fun query(
         sql: String,
-        params: Map<String, Value>,
+        params: Map<String, Any?>,
     ): Rows {
         require(this.inner != 0L) { "Attempted to query with a closed Transaction" }
+
+        val params: Map<String, Value> = params.mapValues {
+            when (val value = it.value) {
+                is Int -> Value.newBuilder().setInteger(value.toLong()).build()
+                is Long -> Value.newBuilder().setInteger(value).build()
+                is String -> Value.newBuilder().setText(value).build()
+                is Float -> Value.newBuilder().setReal(value.toDouble()).build()
+                is Double-> Value.newBuilder().setReal(value).build()
+                null -> Value.newBuilder().setNull(Value.Null.newBuilder().build()).build()
+                else -> {
+                    throw IllegalArgumentException("Type not supported")
+                }
+            }
+        }
 
         val buf =
             Parameters.newBuilder()
@@ -72,15 +114,29 @@ class Transaction internal constructor(private var inner: Long) : Connection {
 
     override fun query(
         sql: String,
-        vararg params: Value,
+        vararg params: Any?,
     ): Rows {
         require(this.inner != 0L) { "Attempted to query with a closed Transaction" }
+
+        val params = params.asList().map {
+            when (val value = it) {
+                is Int -> Value.newBuilder().setInteger(value.toLong()).build()
+                is Long -> Value.newBuilder().setInteger(value).build()
+                is String -> Value.newBuilder().setText(value).build()
+                is Float -> Value.newBuilder().setReal(value.toDouble()).build()
+                is Double-> Value.newBuilder().setReal(value).build()
+                null -> Value.newBuilder().setNull(Value.Null.newBuilder().build()).build()
+                else -> {
+                    throw IllegalArgumentException("Type not supported")
+                }
+            }
+        }
 
         val buf =
             Parameters.newBuilder()
                 .setPositional(
                     PositionalParameters.newBuilder()
-                        .addAllParameters(params.asList()),
+                        .addAllParameters(params),
                 )
                 .build()
                 .toByteArray()
