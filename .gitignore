@@ -15,6 +15,7 @@
 .project
 .settings
 .classpath
+.kotlin
 .cxx
 local.properties
 kls_database.db

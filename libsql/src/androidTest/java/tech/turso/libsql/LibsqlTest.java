@@ -37,7 +37,7 @@ public class LibsqlTest {
     public void queryNamedParameters() {
         try (var db = Libsql.open(":memory:");
                 var conn = db.connect()) {
-            conn.query("select :a", Map.of("a", Value.newBuilder().setInteger(1).build()));
+            conn.query("select :a", Map.of("a", 1));
         }
     }
 
@@ -46,8 +46,8 @@ public class LibsqlTest {
         try (var db = Libsql.open(":memory:");
                 var conn = db.connect()) {
             try (var rows =
-                    conn.query("select 1", Map.of("a", Value.newBuilder().setInteger(1).build()))) {
-                assertEquals(rows.next(), List.of(Value.newBuilder().setInteger(1).build()));
+                    conn.query("select 1", Map.of("a", 1))) {
+                assertEquals(1L, rows.next().get(0));
             }
         }
     }
@@ -56,7 +56,7 @@ public class LibsqlTest {
     public void queryPositionalParameters() {
         try (var db = Libsql.open(":memory:");
                 var conn = db.connect()) {
-            conn.query("select ?", Value.newBuilder().setInteger(1).build());
+            conn.query("select ?", 1);
         }
     }
 
@@ -75,7 +75,7 @@ public class LibsqlTest {
             conn.execute("create table test(i integer)");
             conn.execute(
                     "insert into test values(:a)",
-                    Map.of("a", Value.newBuilder().setInteger(1).build()));
+                    Map.of("a", 1));
         }
     }
 
@@ -109,7 +109,7 @@ public class LibsqlTest {
         try (var db = Libsql.open(":memory:");
                 var conn = db.connect()) {
             conn.execute("create table test(i integer)");
-            conn.execute("insert into test values(?)", Value.newBuilder().setInteger(1).build());
+            conn.execute("insert into test values(?)", 1);
         }
     }
 
@@ -128,7 +128,7 @@ public class LibsqlTest {
         try (var db = Libsql.open(":memory:");
                 var conn = db.connect(); ) {
             var tx = conn.transaction();
-            tx.query("select :a", Map.of("a", Value.newBuilder().setInteger(1).build()));
+            tx.query("select :a", Map.of("a", 1));
             tx.commit();
         }
     }
@@ -139,8 +139,8 @@ public class LibsqlTest {
                 var conn = db.connect()) {
             var tx = conn.transaction();
             try (var rows =
-                    tx.query("select 1", Map.of("a", Value.newBuilder().setInteger(1).build()))) {
-                assertEquals(rows.next(), List.of(Value.newBuilder().setInteger(1).build()));
+                    tx.query("select 1", Map.of("a", 1))) {
+                assertEquals(1L, rows.next().get(0));
             }
             tx.commit();
         }
@@ -151,7 +151,7 @@ public class LibsqlTest {
         try (var db = Libsql.open(":memory:");
                 var conn = db.connect()) {
             var tx = conn.transaction();
-            conn.query("select ?", Value.newBuilder().setInteger(1).build());
+            conn.query("select ?", 1);
             tx.commit();
         }
     }
@@ -174,7 +174,7 @@ public class LibsqlTest {
             tx.execute("create table test(i integer)");
             tx.execute(
                     "insert into test values(:a)",
-                    Map.of("a", Value.newBuilder().setInteger(1).build()));
+                    Map.of("a", 1));
             tx.commit();
         }
     }
@@ -185,7 +185,7 @@ public class LibsqlTest {
                 var conn = db.connect()) {
             var tx = conn.transaction();
             tx.execute("create table test(i integer)");
-            tx.execute("insert into test values(?)", Value.newBuilder().setInteger(1).build());
+            tx.execute("insert into test values(?)", 1);
             tx.commit();
         }
     }
