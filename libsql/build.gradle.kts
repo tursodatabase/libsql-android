@@ -82,12 +82,12 @@ android {
 }
 
 dependencies {
-    implementation(libs.ext.junit)
+    implementation(libs.protobuf.java)
     implementation(libs.core.ktx)
+    androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.junit)
     androidTestImplementation(libs.runner)
     androidTestImplementation(libs.rules)
-    implementation("com.google.protobuf:protobuf-java:3.24.0")
 }
 
 cargo {

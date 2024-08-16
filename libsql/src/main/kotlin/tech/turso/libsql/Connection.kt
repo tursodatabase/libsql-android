@@ -1,7 +1,5 @@
 package tech.turso.libsql
 
-import tech.turso.libsql.proto.Value
-
 interface Connection : AutoCloseable {
     fun execute(sql: String)
 
@@ -13,24 +11,24 @@ interface Connection : AutoCloseable {
 
     fun execute(
         sql: String,
-        params: Map<String, Value>,
+        params: Map<String, Any?>,
     )
 
     fun execute(
         sql: String,
-        vararg params: Value,
+        vararg params: Any?,
     )
 
     fun query(sql: String): Rows
 
     fun query(
         sql: String,
-        params: Map<String, Value>,
+        params: Map<String, Any?>,
     ): Rows
 
     fun query(
         sql: String,
-        vararg params: Value,
+        vararg params: Any?,
     ): Rows
 
     fun transaction(): Transaction

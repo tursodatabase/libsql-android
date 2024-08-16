@@ -3,6 +3,7 @@ agp = "8.4.2"
 junit = "4.13.2"
 junitVersion = "1.2.1"
 protobufGradlePlugin = "0.9.4"
+protobufJava = "3.24.0"
 protobufJavalite = "3.19.1"
 coreKtx = "1.13.1"
 kotlin = "2.0.10"
@@ -10,6 +11,7 @@ kotlin = "2.0.10"
 [libraries]
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 ext-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
+protobuf-java = { module = "com.google.protobuf:protobuf-java", version.ref = "protobufJava" }
 protobuf-javalite = { module = "com.google.protobuf:protobuf-javalite", version.ref = "protobufJavalite" }
 rules = { module = "androidx.test:rules", version = "1.6.1" }
 runner = { module = "androidx.test:runner", version = "1.6.1" }

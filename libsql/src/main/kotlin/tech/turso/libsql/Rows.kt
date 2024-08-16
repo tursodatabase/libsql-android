@@ -8,9 +8,17 @@ class Rows internal constructor(private var inner: Long) : AutoCloseable {
         require(this.inner != 0L) { "Attempted to construct a Rows with a null pointer" }
     }
 
-    fun next(): List<Value> {
+    fun next(): List<Any?> {
         val buf: ByteArray = nativeNext(this.inner)
-        return Row.parseFrom(buf).valuesList
+        return Row.parseFrom(buf).valuesList.map {
+            when {
+                it.hasInteger() -> it.integer
+                it.hasText() -> it.text
+                it.hasReal() -> it.real
+                it.hasNull() -> null
+                else -> RuntimeException("Invalid Row")
+            }
+        }
     }
 
     override fun close() {
