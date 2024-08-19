@@ -5,11 +5,9 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
 
 import androidx.test.ext.junit.runners.AndroidJUnit4;
-import java.util.List;
 import java.util.Map;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import tech.turso.libsql.proto.Value;
 
 @RunWith(AndroidJUnit4.class)
 public class LibsqlTest {
@@ -45,8 +43,7 @@ public class LibsqlTest {
     public void queryRows() {
         try (var db = Libsql.open(":memory:");
                 var conn = db.connect()) {
-            try (var rows =
-                    conn.query("select 1", Map.of("a", 1))) {
+            try (var rows = conn.query("select 1", Map.of("a", 1))) {
                 assertEquals(1L, rows.next().get(0));
             }
         }
@@ -73,9 +70,7 @@ public class LibsqlTest {
         try (var db = Libsql.open(":memory:");
                 var conn = db.connect()) {
             conn.execute("create table test(i integer)");
-            conn.execute(
-                    "insert into test values(:a)",
-                    Map.of("a", 1));
+            conn.execute("insert into test values(:a)", Map.of("a", 1));
         }
     }
 
@@ -138,8 +133,7 @@ public class LibsqlTest {
         try (var db = Libsql.open(":memory:");
                 var conn = db.connect()) {
             var tx = conn.transaction();
-            try (var rows =
-                    tx.query("select 1", Map.of("a", 1))) {
+            try (var rows = tx.query("select 1", Map.of("a", 1))) {
                 assertEquals(1L, rows.next().get(0));
             }
             tx.commit();
@@ -172,9 +166,7 @@ public class LibsqlTest {
                 var conn = db.connect()) {
             var tx = conn.transaction();
             tx.execute("create table test(i integer)");
-            tx.execute(
-                    "insert into test values(:a)",
-                    Map.of("a", 1));
+            tx.execute("insert into test values(:a)", Map.of("a", 1));
             tx.commit();
         }
     }

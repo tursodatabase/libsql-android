@@ -1,5 +1,20 @@
 package tech.turso.libsql
 
+import tech.turso.libsql.proto.Value
+
+fun Any?.toValue(): Value =
+    when (this) {
+        is Int -> Value.newBuilder().setInteger(this.toLong()).build()
+        is Long -> Value.newBuilder().setInteger(this).build()
+        is String -> Value.newBuilder().setText(this).build()
+        is Float -> Value.newBuilder().setReal(this.toDouble()).build()
+        is Double -> Value.newBuilder().setReal(this).build()
+        null -> Value.newBuilder().setNull(Value.Null.newBuilder().build()).build()
+        else -> {
+            throw IllegalArgumentException("Type not supported")
+        }
+    }
+
 object Libsql {
     init {
         System.loadLibrary("libsql_android")
