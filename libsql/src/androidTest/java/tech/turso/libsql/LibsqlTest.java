@@ -24,6 +24,20 @@ public class LibsqlTest {
     }
 
     @Test
+    public void failNestedTransaction() {
+        try {
+            try (var db = Libsql.open(":memory:");
+                 var conn = db.connect()) {
+                var tx1 = conn.transaction();
+                var tx2 = tx1.transaction();
+            }
+            fail("Successfully made a nested transaction");
+        } catch (Throwable e) {
+            assertNotNull(e);
+        }
+    }
+
+    @Test
     public void queryEmptyParameters() {
         try (var db = Libsql.open(":memory:");
                 var conn = db.connect()) {
