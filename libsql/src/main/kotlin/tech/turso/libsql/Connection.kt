@@ -7,6 +7,10 @@ interface Connection : AutoCloseable {
 
     fun executeBatch(sql: String)
 
+    fun executeBatch(sql: List<String>) {
+        executeBatch(sql.joinToString("; "))
+    }
+
     fun execute(
         sql: String,
         params: Map<String, Value>,
