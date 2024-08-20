@@ -13,7 +13,7 @@ panic = "unwind"
 panic = "unwind"
 
 [dependencies]
-libsql = "0.3.1"
+libsql = "0.5.0"
 tokio = { version = "1", features = ["full"] }
 hyper-rustls = { version = "0.25", features = ["webpki-roots"]}
 jni-mangle = "0.1.2"
