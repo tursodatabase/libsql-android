@@ -14,6 +14,7 @@ class Rows internal constructor(private var inner: Long) : AutoCloseable {
                 it.hasInteger() -> it.integer
                 it.hasText() -> it.text
                 it.hasReal() -> it.real
+                it.hasBlob() -> it.blob.toByteArray()
                 it.hasNull() -> null
                 else -> RuntimeException("Invalid Row")
             }
