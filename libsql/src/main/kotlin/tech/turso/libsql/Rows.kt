@@ -1,15 +1,18 @@
 package tech.turso.libsql
 
-import tech.turso.libsql.proto.Row
+import java.util.function.Consumer
+import tech.turso.libsql.proto.Row as ProtoRow
 
-class Rows internal constructor(private var inner: Long) : AutoCloseable {
+typealias Row = List<Any?>
+
+class Rows internal constructor(private var inner: Long) : AutoCloseable, Iterable<Row> {
     init {
         require(this.inner != 0L) { "Attempted to construct a Rows with a null pointer" }
     }
 
-    fun next(): List<Any?> {
+    fun next(): Row {
         val buf: ByteArray = nativeNext(this.inner)
-        return Row.parseFrom(buf).valuesList.map {
+        return ProtoRow.parseFrom(buf).valuesList.map {
             when {
                 it.hasInteger() -> it.integer
                 it.hasText() -> it.text
@@ -26,6 +29,8 @@ class Rows internal constructor(private var inner: Long) : AutoCloseable {
         nativeClose(this.inner)
         this.inner = 0
     }
+
+    override fun iterator(): Iterator<Row> = RowsIterator(this)
 
     private external fun nativeNext(rows: Long): ByteArray
 

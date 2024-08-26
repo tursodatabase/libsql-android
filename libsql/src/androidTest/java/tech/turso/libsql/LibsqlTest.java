@@ -1,5 +1,6 @@
 package tech.turso.libsql;
 
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
@@ -61,6 +62,35 @@ public class LibsqlTest {
                 var conn = db.connect()) {
             try (var rows = conn.query("select 1", Map.of("a", 1))) {
                 assertEquals(1L, rows.next().get(0));
+            }
+        }
+    }
+
+    @Test
+    public void queryMultiple() {
+        try (var db = Libsql.open(":memory:");
+             var conn = db.connect()) {
+
+            var end = 255;
+
+            conn.execute("create table test (i integer, t text, r real, b blob)");
+
+            for (int i = 0; i < 255; i++) {
+                conn.execute(
+                        "insert into test values (?, ?, ?, ?)",
+                        i, "" + i, Math.exp(i), new byte[]{ (byte) i }
+                );
+            }
+
+            try (var rows = conn.query("select * from test")) {
+                var i = 0;
+                for (var row : rows) {
+                    assertEquals((long) i, row.get(0));
+                    assertEquals("" + i, row.get(1));
+                    assertEquals(Math.exp(i), row.get(2));
+                    assertArrayEquals(new byte[]{ (byte) i }, (byte[]) row.get(3));
+                    i++;
+                }
             }
         }
     }
