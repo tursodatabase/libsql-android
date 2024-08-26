@@ -218,7 +218,8 @@ pub fn nativeExecute(mut env: JNIEnv, _: JClass, conn: jlong, sql: JString, buf:
 
 #[jni_fn("tech.turso.libsql.ConnectionImpl")]
 pub fn nativeExecuteBatch(mut env: JNIEnv, _: JClass, tx: jlong, sql: JString) {
-    match (|| -> anyhow::Result<()> {
+    // TODO: Support BatchRows
+    match (|| -> anyhow::Result<_> {
         let tx = ManuallyDrop::new(unsafe { Box::from_raw(tx as *mut Connection) });
         let sql = env.get_string(&sql)?;
         Ok(RT.block_on(tx.execute_batch(&sql.to_string_lossy()))?)
@@ -311,7 +312,8 @@ pub fn nativeExecute(mut env: JNIEnv, _: JClass, tx: jlong, sql: JString, buf: J
 
 #[jni_fn("tech.turso.libsql.Transaction")]
 pub fn nativeExecuteBatch(mut env: JNIEnv, _: JClass, tx: jlong, sql: JString) {
-    match (|| -> anyhow::Result<()> {
+    // TODO: Support BatchRows
+    match (|| -> anyhow::Result<_> {
         let tx = ManuallyDrop::new(unsafe { Box::from_raw(tx as *mut Transaction) });
         let sql = env.get_string(&sql)?;
         Ok(RT.block_on(tx.execute_batch(&sql.to_string_lossy()))?)
