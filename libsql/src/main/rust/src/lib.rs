@@ -2,12 +2,12 @@
 
 use jni::{
     objects::{JByteArray, JClass, JString},
-    sys::{jbyteArray, jlong},
+    sys::{jboolean, jbyteArray, jlong},
     JNIEnv,
 };
 use jni_fn::jni_fn;
 use libsql::{Builder, Connection, Database, Rows, Transaction};
-use std::{mem::ManuallyDrop, ptr};
+use std::{mem::ManuallyDrop, ptr, time::Duration};
 
 use lazy_static::lazy_static;
 use prost::Message;
@@ -149,23 +149,37 @@ pub fn nativeOpenEmbeddedReplica(
     path: JString,
     url: JString,
     auth_token: JString,
+    sync_interval: jlong,
+    read_your_writes: jboolean,
+    with_webpki: jboolean,
 ) -> jlong {
     match (|| -> anyhow::Result<Database> {
         let path = env.get_string(&path)?;
         let url = env.get_string(&url)?;
         let auth_token = env.get_string(&auth_token)?;
 
-        let connector = hyper_rustls::HttpsConnectorBuilder::new()
-            .with_webpki_roots()
-            .https_or_http()
-            .enable_http1()
-            .build();
-
-        let db = RT.block_on(
+        let db =
             Builder::new_remote_replica(&*path.to_string_lossy(), url.into(), auth_token.into())
-                .connector(connector)
-                .build(),
-        );
+                .read_your_writes(read_your_writes != 0);
+
+        let db = if with_webpki != 0 {
+            let connector = hyper_rustls::HttpsConnectorBuilder::new()
+                .with_webpki_roots()
+                .https_or_http()
+                .enable_http1()
+                .build();
+            db.connector(connector)
+        } else {
+            db
+        };
+
+        let db = if sync_interval != 0 {
+            db.sync_interval(Duration::from_millis(sync_interval.try_into()?))
+        } else {
+            db
+        };
+
+        let db = RT.block_on(db.build());
 
         Ok(db?)
     })() {
