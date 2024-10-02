@@ -21,3 +21,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "libsql"
 include(":libsql")
+include(":examples:todo")
