@@ -156,6 +156,8 @@ publishing {
                 name = artifactId
                 description = "Java bindings for libSQL"
 
+                url = "https://github.com/tursodatabase/libsql-android"
+
                 licenses {
                     license {
                         name = "The MIT License"
@@ -188,6 +190,7 @@ publishing {
 
     repositories {
         maven {
+            name = "stagingDeploy"
             url = uri(layout.buildDirectory.dir("staging-deploy"))
         }
     }
