@@ -2,7 +2,7 @@
 
 use jni::{
     objects::{JByteArray, JClass, JString},
-    sys::{jboolean, jbyteArray, jlong},
+    sys::{jboolean, jbyteArray, jint, jlong, jstring},
     JNIEnv,
 };
 use jni_fn::jni_fn;
@@ -283,6 +283,44 @@ pub fn nativeClose(_: JNIEnv, _: JClass, conn: jlong) {
     drop(unsafe { Box::from_raw(conn as *mut Connection) });
 }
 
+#[jni_fn("tech.turso.libsql.Rows")]
+pub fn nativeColumnCount(_: JNIEnv, _: JClass, rows: jlong) -> jint {
+    let rows = ManuallyDrop::new(unsafe { Box::from_raw(rows as *mut Rows) });
+    return rows.column_count();
+}
+
+#[jni_fn("tech.turso.libsql.Rows")]
+pub fn nativeColumnName(mut env: JNIEnv, _: JClass, rows: jlong, idx: jint) -> jstring {
+    let result = (|| -> anyhow::Result<Option<JString>> {
+        let rows = ManuallyDrop::new(unsafe { Box::from_raw(rows as *mut Rows) });
+        if let Some(name) = rows.column_name(idx) {
+            Ok(Some(env.new_string(name)?))
+        } else {
+            Ok(None)
+        }
+    })();
+
+    match result {
+        Ok(Some(jstr)) => jstr.into_raw(),
+        Ok(None) => ptr::null_mut(),
+        Err(err) => {
+            env.throw(err.to_string()).unwrap();
+            ptr::null_mut()
+        }
+    }
+}
+
+#[jni_fn("tech.turso.libsql.Rows")]
+pub fn nativeColumnType(mut env: JNIEnv, _: JClass, rows: jlong, idx: jint) -> jint {
+    let rows = ManuallyDrop::new(unsafe { Box::from_raw(rows as *mut Rows) });
+    match rows.column_type(idx) {
+        Ok(v) => v as jint,
+        Err(err) => {
+            env.throw(err.to_string()).unwrap();
+            -1
+        }
+    }
+}
 #[jni_fn("tech.turso.libsql.Rows")]
 pub fn nativeNext(mut env: JNIEnv, _: JClass, rows: jlong) -> jbyteArray {
     match (|| -> anyhow::Result<JByteArray> {
