@@ -146,7 +146,7 @@ publishing {
         create<MavenPublication>("release") {
             groupId = "tech.turso.libsql"
             artifactId = "libsql"
-            version = "0.1.0"
+            version = "0.1.1"
 
             afterEvaluate {
                 from(components.getByName("release"))
@@ -192,6 +192,16 @@ publishing {
         maven {
             name = "stagingDeploy"
             url = uri(layout.buildDirectory.dir("staging-deploy"))
+        }
+
+        maven {
+            name = "ossrhStaging"
+            url = uri("https://ossrh-staging-api.central.sonatype.com/service/local/staging/deploy/maven2/")
+
+            credentials {
+                username = findProperty("ossrh.username")?.toString() ?: System.getenv("OSSRH_USERNAME")
+                password = findProperty("ossrh.password")?.toString() ?: System.getenv("OSSRH_PASSWORD")
+            }
         }
     }
 }
