@@ -91,6 +91,11 @@ dependencies {
 }
 
 cargo {
+    if (gradle.startParameter.taskNames.any { it.lowercase().contains("release") }) {
+        profile = "release"
+    } else {
+        profile = "debug"
+    }
     module = "./src/main/rust/"
     libname = "libsql_android"
     targets = listOf("arm", "arm64", "x86", "x86_64")
