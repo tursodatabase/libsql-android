@@ -1,3 +1,4 @@
+import cn.lalaki.pub.BaseCentralPortalPlusExtension
 import com.google.protobuf.gradle.id
 import com.google.protobuf.gradle.proto
 
@@ -9,6 +10,7 @@ plugins {
     id("com.google.protobuf") version "0.9.4"
     id("com.diffplug.spotless") version "6.25.0"
 
+    id("cn.lalaki.central") version "1.2.8"
     id("maven-publish")
     signing
 }
@@ -146,6 +148,7 @@ spotless {
     }
 }
 
+var local = uri(layout.buildDirectory.dir("staging-deploy"))
 publishing {
     publications {
         create<MavenPublication>("release") {
@@ -196,17 +199,7 @@ publishing {
     repositories {
         maven {
             name = "stagingDeploy"
-            url = uri(layout.buildDirectory.dir("staging-deploy"))
-        }
-
-        maven {
-            name = "ossrhStaging"
-            url = uri("https://ossrh-staging-api.central.sonatype.com/service/local/staging/deploy/maven2/")
-
-            credentials {
-                username = findProperty("ossrh.username")?.toString() ?: System.getenv("OSSRH_USERNAME")
-                password = findProperty("ossrh.password")?.toString() ?: System.getenv("OSSRH_PASSWORD")
-            }
+            url = local
         }
     }
 }
@@ -218,4 +211,14 @@ signing {
 
 tasks.withType<AbstractPublishToMaven>().configureEach {
     dependsOn(tasks.withType<Sign>())
+}
+
+val sonatypeUsername: String by project
+val sonatypePassword: String by project
+
+centralPortalPlus {
+    url = local
+    username = sonatypeUsername
+    password = sonatypePassword
+    publishingType = BaseCentralPortalPlusExtension.PublishingType.USER_MANAGED
 }
