@@ -2,6 +2,7 @@ package tech.turso.libsql;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
 
@@ -37,6 +38,46 @@ public class LibsqlTest {
             fail("Successfully made a nested transaction");
         } catch (Throwable e) {
             assertNotNull(e);
+        }
+    }
+
+    @Test
+    public void queryColumnCount() {
+        try (var db = Libsql.open(":memory:");
+             var conn = db.connect()) {
+            try (var rows = conn.query("select 1 as foo, 2 as bar")) {
+                assertEquals(2, rows.getColumnCount());
+
+            }
+        }
+    }
+
+
+    @Test
+    public void queryColumnName() {
+        try (var db = Libsql.open(":memory:");
+             var conn = db.connect()) {
+            try (var rows = conn.query("select 1 as foo, 2 as bar")) {
+                assertEquals("foo", rows.columnNames((0)));
+                assertEquals("bar", rows.columnNames((1)));
+                assertNull(rows.columnNames((2)));
+
+            }
+        }
+    }
+
+    @Test
+    public void queryColumnType() {
+        try (var db = Libsql.open(":memory:");
+             var conn = db.connect()) {
+            try (var rows = conn.query("select 1 as integer, 3.14 as real, 'text' as text, X'68656C6C6F' as blob, null as nullValue")) {
+                assertEquals(ValueType.Integer, rows.columnType((0)));
+                assertEquals(ValueType.Real, rows.columnType((1)));
+                assertEquals(ValueType.Text, rows.columnType((2)));
+                assertEquals(ValueType.Blob, rows.columnType((3)));
+                assertEquals(ValueType.Null, rows.columnType((4)));
+                assertNull(rows.columnNames((5)));
+            }
         }
     }
 

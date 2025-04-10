@@ -10,6 +10,17 @@ class Rows internal constructor(private var inner: Long) : AutoCloseable, Iterab
         require(this.inner != 0L) { "Attempted to construct a Rows with a null pointer" }
     }
 
+    val columnCount: Int
+        get() = nativeColumnCount(inner)
+
+    fun columnNames(idx: Int): String? {
+        return nativeColumnName(this.inner, idx)
+    }
+
+    fun columnType(idx: Int): ValueType? {
+        return ValueType.fromInt(nativeColumnType(this.inner ,idx))
+    }
+
     fun next(): Row {
         val buf: ByteArray = nativeNext(this.inner)
         return ProtoRow.parseFrom(buf).valuesList.map {
@@ -31,6 +42,12 @@ class Rows internal constructor(private var inner: Long) : AutoCloseable, Iterab
     }
 
     override fun iterator(): Iterator<Row> = RowsIterator(this)
+
+    private external fun nativeColumnCount(rows: Long): Int
+
+    private external fun nativeColumnName(rows: Long, idx: Int): String?
+
+    private external fun nativeColumnType(rows: Long, idx: Int): Int
 
     private external fun nativeNext(rows: Long): ByteArray
 
