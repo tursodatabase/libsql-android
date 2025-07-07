@@ -220,5 +220,5 @@ centralPortalPlus {
     url = local
     username = sonatypeUsername
     password = sonatypePassword
-    publishingType = BaseCentralPortalPlusExtension.PublishingType.USER_MANAGED
+    publishingType = BaseCentralPortalPlusExtension.PublishingType.AUTOMATIC
 }
