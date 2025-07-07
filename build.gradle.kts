@@ -1,5 +1,5 @@
 group = "tech.turso"
-version = "0.1.1"
+version = "0.1.2"
 
 plugins {
     alias(libs.plugins.android.application) apply false
